@@ -10,6 +10,7 @@
 #define robot_h
 
 class Robot {
+public:
     // these constructors are subject to change
     Robot();
     ~Robot();
@@ -24,6 +25,7 @@ class Robot {
 
 namespace Robot {
     class AI {
+    public:
         AI(SensorData sensor_data, Control control);
         ~AI();
         
@@ -79,6 +81,7 @@ namespace Robot {
      * method will specify its caching behaviour.
      */
     class ExternalData {
+    public:
         // these constructors are subject to change
         ExternalData();
         ~ExternalData();
