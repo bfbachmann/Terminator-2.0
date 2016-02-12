@@ -24,6 +24,18 @@ public:
 };
 
 namespace Robot {
+    /*
+     * struct Vector
+     *
+     * Members:
+     * float x: the x-component of the vector in centimetres.
+     * float y: the y-component of the vector in centimetres.
+     */
+    typedef struct Vector {
+        float x;
+        float y;
+    };
+    
     class AI {
     public:
         /*
@@ -93,6 +105,24 @@ namespace Robot {
          *                          0, indicating no turning.
          */
         void go(float velocity, float angular_velocity = 0);
+        
+        /*
+         * go(Vector direction, bool stopAtDestination)
+         *
+         * Causes the robot to proceed in the direction specified by direction.
+         * 
+         * Parameters:
+         * vector destination:      A vector specifying the direction in which
+         *                          the robot should travel. The origin of the
+         *                          vector is assumed to be the center of the
+         *                          robot.
+         * bool stopAtDestination:  Optional. Defaults to false.
+         *                          Specifies whether the robot should stop once
+         *                          it reaches the point specified by direction.
+         *                          If false, the robot will continue in the
+         *                          specified direction until instructed otherwise.
+         */
+        void go(Vector direction, bool stopAtDestination = false);
         
         /*
          * void stop()
