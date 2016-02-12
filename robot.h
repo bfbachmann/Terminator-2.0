@@ -130,6 +130,38 @@ namespace Robot {
          * Causes the robot to cease all movement immediately.
          */
         void stop();
+        
+        /*
+         * void orientRangeFinder(int orientation)
+         *
+         * Causes the ultrasonic range finder on the rotatable platter to
+         * assume the specified orientation.
+         *
+         * Parameters:
+         * int orientation: The orientation the range finder should assume,
+         *                  specified in degrees. The value should be in the
+         *                  range of 0 to 359, inclusive. 0 degrees will be
+         *                  assumed be the straight ahead, 90 straight to
+         *                  the right, 180 straight back, and 270 straight
+         *                  to the left. See the figure below for details.
+         *
+         *                  0
+         *      315 -----------------  45
+         *         |      front      |
+         *         |                 |
+         *         |        ^        |
+         *         |       / \       |
+         *         |        |        |
+         *     270 |      <-+->      | 90
+         *         |        |        |
+         *         |       \ /       |
+         *         |        ˇ        |
+         *         |                 |
+         *         |      back       |
+         *      225 -----------------  135
+         *                 180
+         */
+        void orientRangeFinder(int orientation);
     };
     
     /*
