@@ -26,7 +26,19 @@ public:
 namespace Robot {
     class AI {
     public:
-        AI(SensorData sensor_data, Control control);
+        /*
+         * AI(ExternalData external_data, Control control)
+         *
+         * Initializes the AI and performs necessary setup. This function must be
+         * called before any other functions.
+         *
+         * Parameters:
+         * ExternalData external_data:  An ExternalData object from which necessary
+         *                              data from the outside world will be read.
+         * Control control:             A Control object with which the AI will
+         *                              execute decisions that are made.
+         */
+        AI(ExternalData external_data, Control control);
         ~AI();
         
         /*
@@ -46,8 +58,25 @@ namespace Robot {
      */
     class Control {
     public:
-        // these constructors are subject to change
-        Control(SensorData sensor_data);
+        /*
+         * Control(SensorData sensor_data)
+         * 
+         * Initializes the object and performs necessary setup. This function
+         * must be called before any other functions.
+         *
+         * Parameters:
+         * ExternalData external_data:  The SensorData object from which necessary
+         *                              data from the outside world will be read.
+         * int in1:                     The pin to which the in1 pin of the motor
+         *                              shield is connected.
+         * int in2:                     The pin to which the in2 pin of the motor
+         *                              shield is connected.
+         * int in3:                     The pin to which the in3 pin of the motor
+         *                              shield is connected.
+         * int in4:                     The pin to which the in4 pin of the motor
+         *                              shield is connected.
+         */
+        Control(ExternalData external_data, int in1, int in2, int in3, int in4);
         ~Control();
         
         /*
@@ -79,11 +108,40 @@ namespace Robot {
      * Implements logic to acquire data from input devices. This class may use caching
      * in order to reduce actual accesses to hardward devices. Every data acquisition
      * method will specify its caching behaviour.
+     *
+     *
      */
     class ExternalData {
     public:
         // these constructors are subject to change
-        ExternalData();
+        /*
+         * ExternalData(int temperaturePin, int numberOfUltrasonicSensors, int* ultrasonicSensors)
+         *
+         * Initializes ExternalData and performs necessary setup. This function
+         * must be called before any other functions.
+         *
+         * Parameters:
+         * int temperaturePin:              the pin to which the temperature sensor's Vout pin
+         *                                  is connected.
+         * int numberOfUltrasonicSensors:   the number of ultrasonic sensors that are
+         *                                  available to the robot.
+         * int** ultrasonicSensors:         pins to which each ultrasonic sensor is connected.
+         *                                  The array should be formatted as follows, indexed
+         *                                  as ultrasonicSensors[index][index2]:
+         * 
+         *          index   index2  value
+         *          0       0       pin to which the trigger pin of the 0th ultrasonic
+         *                          sensor is connected.
+         *          0       1       pin to which the echo pin of the 0th ultrasonic sensor
+         *                          is connected.
+         *          1       0       pin to which the trigger pin of the 1st ultrasonic
+         *                          sensor is connected.
+         *          1       1       pin to which the echo pin of the 0th ultrasonic sensor
+         *                          is connected.
+         *
+         * And so on.
+         */
+        ExternalData(int temperaturePin, int numberOfUltrasonicSensors, int** ultrasonicSensors);
         ~ExternalData();
         
         /*
@@ -95,23 +153,23 @@ namespace Robot {
         void clearCache();
         
         /*
-         * float temperature()
+         * float temperature(bool fresh)
          * 
-         * Returns the current ambient air temperature. This function may perform
-         * caching.
+         * Returns the current ambient air temperature in degrees Celsuis. This function
+         * may perform caching.
          *
          * Parameters:
-         * bool fresh:  if true, the cache will be ignored and fresh data will be
+         * bool fresh:  This parameter is optional.
+         *              If true, the cache will be ignored and fresh data will be
          *              read from the appropriate sensors.
          */
         float temperature(bool fresh = false);
         
         /*
-         * float distance()
+         * float distance(bool fresh)
          *
          * Returns the current distance to the nearest object as seen by an ultrasonic
-         * range finder. This function may perform caching. If fresh data is required,
-         * call clearCache() before calling this method.
+         * range finder in cm. This function may perform caching.
          *
          * Parameters:
          * int sensor:  the index of the ultrasonic range finder that should be used to
@@ -122,10 +180,11 @@ namespace Robot {
         float distance(int sensor, bool fresh = false);
         
         /*
-         * float* distances()
+         * float* distances(bool fresh)
          * 
          * Returns the current distance to the nearest object as seen by each ultrasonic
-         * range finder. The return array will be indexed as follows:
+         * range finder. The units of the return value will be the same as the distance()
+         * function. The return array will be indexed as follows:
          *
          *          index   value
          *          0       distance from sensor 0 to nearest object
@@ -141,6 +200,18 @@ namespace Robot {
          *              read from the appropriate sensors.
          */
         float* distances(bool fresh = false);
+        
+        /*
+         * void reflectivity(bool fresh)
+         *
+         * Returns the reflectivity seen by the reflective optical sensor. The units
+         * of the return value is not yet specified. This function may perform caching.
+         *
+         * Parameters:
+         * bool fresh:  if true, the cache will be ignored and fresh data will be
+         *              read from the appropriate sensors.
+         */
+        float reflectivity(bool fresh = false);
     };
 }
 
