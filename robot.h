@@ -23,7 +23,7 @@ public:
     void run();
 };
 
-namespace Robot {
+namespace robot {
     /*
      * struct Vector
      *

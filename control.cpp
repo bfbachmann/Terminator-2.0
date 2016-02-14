@@ -5,8 +5,9 @@
 	02/13/16
 */
 
-#include "robot.h"
-#include <math.c>
+//
+//#include "robot.h"
+#include <math.h>
 
 // Geometric constants of robot vehicle.
 // Wheel radius (R) and wheel to wheel length (L).
@@ -23,13 +24,15 @@
 // Max speed in cm/s. 
 #define MAX_SPEED 20
 
+// using namespace robot;
+
 /*	go(State state, Vector destination, bool StopAtDestination = false)
 	
 	Control flow for a single time step in moving the robot towards its
 	destination. 
  */
-void go(State state, Vector destination, bool stopAtDestination = false) {
-	float v, w, desired_heading, right_w, left_w, error;
+void go(State state, Vector destination, bool stopAtDestination) {
+	float v, w, desired_heading, right_w, left_w, error, velocity;
 	Vector goal;
 	
 	/* Create goal vector */ 
@@ -37,12 +40,12 @@ void go(State state, Vector destination, bool stopAtDestination = false) {
 	goal.y = (destination.y - state.y);
 	
 	/* Determine desired heading, velocity and angular velocity */
-	velocity = sqrt(goal.x * goal.x + goal.y * goal.y);
-	velocity = (velocity > MAX_SPEED) ? MAX_SPEED : velocity;
+	v = sqrt(goal.x * goal.x + goal.y * goal.y);
+	v = (velocity > MAX_SPEED) ? MAX_SPEED : velocity;
 	desired_heading = atan2(goal.y,goal.x);	
 	error = desired_heading - state.heading;
-	error = atan2(sin(error), cos(error))
-	angular_velocity = k_p * error + k_i * error * dt;
+	error = atan2(sin(error), cos(error));
+	w = k_p * error + k_i * error * dt;
 	
 	/* Calculate wheel velocities from craft velocity */
 	left_w = wheelVelocity(w,v,0);
@@ -64,10 +67,10 @@ void go(State state, Vector destination, bool stopAtDestination = false) {
  *	Returns: A wheel velocity.
  */
 float wheelVelocity(float w, float v, int wheel) {
-	if(wheel) {
+	if(wheel)
 		return (2*v + w*L)/(2*R);
-	else {
-		return (2*v - w*L)/(r*R);
+	else
+		return (2*v - w*L)/(2*R);
 }
 /*	Applies PWM signal to wheel motors. This function will require access
  *	to pin numbers.
@@ -87,11 +90,11 @@ void wheelControl(float left_w, float right_w) {
  *   number of ticks in the given time step. We can and should try both.
  */
 void calculateOdometry(State * state, float left_w, float right_w) {
-	float left_wheel = left_velocity * dt * R;
-	float right_wheel = right_velocity * dt * R;
-	float distance = (left_wheel_distance + right_wheel_distance)/2;
+	float left_wheel = left_w * dt * R;
+	float right_wheel = right_w * dt * R;
+	float distance = (left_wheel + right_wheel)/2;
 	
-	state->x = state->x + distance*cos(state->heading);
-	state->y = state->y + distance*sin(state->heading);
+	state->x = state->x + distance * cos(state->heading);
+	state->y = state->y + distance * sin(state->heading);
 	state->heading = state->heading + (left_wheel-right_wheel)/L;
 }
