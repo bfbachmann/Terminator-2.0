@@ -15,11 +15,12 @@
 #define L 15
 
 // PID controller tuning.
-#define k_p 1
+#define k_p 1.5
 #define k_i 0
+#define k_d 0
 
 // Finite time step in ms.
-#define dt 1
+#define dt 2
 
 // Max speed in cm/s. 
 #define MAX_SPEED 20
@@ -31,7 +32,7 @@
 	Control flow for a single time step in moving the robot towards its
 	destination. 
  */
-void go(State * state, Vector * destination, bool stopAtDestination) {
+bool go(State * state, Vector * destination, bool stopAtDestination) {
 	float v, w, desired_heading, right_w, left_w, error, velocity;
 	Vector goal;
 	
@@ -40,22 +41,25 @@ void go(State * state, Vector * destination, bool stopAtDestination) {
 	goal.y = (destination->y - state->y);
 	
 	/* Determine desired heading, velocity and angular velocity */
-	v = sqrt(goal.x * goal.x + goal.y * goal.y);
-	v = (velocity > MAX_SPEED) ? MAX_SPEED : velocity;
+	state->v = sqrt(goal.x * goal.x + goal.y * goal.y);
+	state->v = (state->v > MAX_SPEED) ? MAX_SPEED : state->v;
 	desired_heading = atan2(goal.y,goal.x);	
 	error = desired_heading - state->heading;
 	error = atan2(sin(error), cos(error));
-	w = k_p * error + k_i * error * dt;
+	state->w = k_p * error + k_i * error * dt;
 	
 	/* Calculate wheel velocities from craft velocity */
-	left_w = wheelVelocity(w,v,0);
-	right_w = wheelVelocity(w,v,1);
+	left_w = wheelVelocity(state->w,state->v,0);
+	right_w = wheelVelocity(state->w,state->v,1);
 	
 	/* Implement wheel velocities */
 	wheelControl(left_w, right_w);
 
 	/* Update state variables */
 	calculateOdometry(state, left_w, right_w);
+
+	/* Return true if within threshold of destination */
+	return (state->v < 5);
 		
 }
 /* 	Computes left or right wheel angular velocity given craft velocity and
@@ -92,7 +96,7 @@ void wheelControl(float left_w, float right_w) {
 void calculateOdometry(State * state, float left_w, float right_w) {
 	float l_distance = left_w * dt * R / 1000;
 	float r_distance = right_w * dt * R / 1000;
-	float distance = (l_distance + r_distance)/2;
+	float distance = (l_distance + r_distance) / 2;
 	
 	state->x = state->x + distance * cos(state->heading);
 	state->y = state->y + distance * sin(state->heading);

@@ -18,14 +18,19 @@
 	* float y:       the y-component of the state coordinate in cm
 	* float heading: the heading of the craft. Measured in radians
 	*                from the x-axis.
+    * float v:       the velocity of the robot in cm/s
+    * float w:       the angular velocity of the robot in rad/sec.
+    *
 	*/
 	typedef struct {
 		float x;
 		float y;
-		float heading;	
+		float heading;
+        float v;
+        float w;	
 	} State;
 
-void go(State * state, Vector * destination, bool stopAtDestination = false);
+bool go(State * state, Vector * destination);
         
         /*
          * void stop()

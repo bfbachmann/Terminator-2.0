@@ -41,15 +41,20 @@ namespace robot {
     * Structure to hold state variables.
     *
     * float x:       the x-component of the state coordinate in cm
-	* float y:       the y-component of the state coordinate in cm
-	* float heading: the heading of the craft. Measured in radians
-	*                from the x-axis.
-	*/
-	typedef struct {
-		float x;
-		float y;
-		float heading;	
-	} State;
+    * float y:       the y-component of the state coordinate in cm
+    * float heading: the heading of the craft. Measured in radians
+    *                from the x-axis.
+    * float v:       the velocity of the robot in cm/s
+    * float w:       the angular velocity of the robot in rad/sec.
+    *
+    */
+    typedef struct {
+        float x;
+        float y;
+        float heading;
+        float v;
+        float w;    
+    } State;
 
     
     class AI {
@@ -119,8 +124,12 @@ namespace robot {
          * float angular_velocity:  the angular velocity at which the robot
          *                          should proceed in rad/sec. Defaults to
          *                          0, indicating no turning.
+         * Returns:
+         * boolean:                 If the robot is within a sufficiently small
+         *                          threshold of the requested destination, the go
+         *                          function will return a boolean true.
          */
-        void go(float velocity, float angular_velocity = 0);
+        bool go(float velocity, float angular_velocity = 0);
         
         /*
          * go(Vector direction, bool stopAtDestination)
@@ -132,13 +141,18 @@ namespace robot {
          *                          the robot should travel. The origin of the
          *                          vector is assumed to be the center of the
          *                          robot.
-         * bool stopAtDestination:  Optional. Defaults to false.
+         * bool stopAtDestination:  (REMOVED, OPTIONAL). Defaults to false.
          *                          Specifies whether the robot should stop once
          *                          it reaches the point specified by direction.
          *                          If false, the robot will continue in the
          *                          specified direction until instructed otherwise.
+         *
+         * Returns:
+         * boolean:                 If the robot is within a sufficiently small
+         *                          threshold of the requested destination, the go
+         *                          function will return a boolean true.
          */
-        void go(State state, Vector destination, bool stopAtDestination = false);
+        bool go(State state, Vector destination);
         
         /*
          * void stop()
