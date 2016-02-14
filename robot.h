@@ -31,10 +31,10 @@ namespace robot {
      * float x: the x-component of the vector in centimetres.
      * float y: the y-component of the vector in centimetres.
      */
-    typedef struct Vector {
+    typedef struct {
         float x;
         float y;
-    };
+    } Vector;
 	
    /* struct State
     *
@@ -45,11 +45,11 @@ namespace robot {
 	* float heading: the heading of the craft. Measured in radians
 	*                from the x-axis.
 	*/
-	typedef struct State {
+	typedef struct {
 		float x;
 		float y;
 		float heading;	
-	};
+	} State;
 
     
     class AI {
