@@ -182,19 +182,19 @@ namespace Robot {
 		*   PWM appropriate signal (integer from 0-255)
 		*	
 		*	Parameters:
-		*	float right_velocity: An angular velocity, specified in radians
-		*						  per second, to be applied to the right wheel.
+		*	float left_w:		  An angular velocity, specified in radians
+		*						  per second, to be applied to the left wheel.
 		*						  This function will assume velocities requested
 		*						  are within the operating range of the motor as 
 		*						  specified in the datasheet. This function must 
 		*						  convert the angular velocity to some integer 
 		*						  between 0 & 255 using a linear model.
 		*
-		*	float left_velocity:  An angular velocity, specified in radians per
-		*						  second, to be applied to the left wheel. Similar
-		*						  conditions to the right_velocity parameter.
+		*	float left_w:		  An angular velocity, specified in radians per
+		*						  second, to be applied to the right wheel. Similar
+		*						  conditions to the left_w parameter.
 		*/
-		void wheelControl(float right_velocity, float left_velocity);
+		void wheelControl(float left_w, right_w);
 
 	   /*	void calculateOdometry(State * state, float left_w, float right_w)
 		*
@@ -226,7 +226,7 @@ namespace Robot {
 		*	Returns:		A wheel velocity in float format for the wheelControl function
 		*					to apply to the wheels, and for the calculateOdometry function
 		*					to use in calculating state changes during a time step.
-		*/
+		*/	
 		float wheelVelocity(float w, float v, int wheel);
     };
     
