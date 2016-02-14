@@ -138,7 +138,7 @@ namespace robot {
          *                          If false, the robot will continue in the
          *                          specified direction until instructed otherwise.
          */
-        void go(Vector destination, bool stopAtDestination = false);
+        void go(State state, Vector destination, bool stopAtDestination = false);
         
         /*
          * void stop()
