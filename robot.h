@@ -36,11 +36,14 @@ namespace Robot {
         float y;
     };
 	
-	/*	Strucutre to hold state variables.
-	*	x & y are in centimeters, heading is in radians.
-	*
-	*	This structure should be moved to the header file
-	*	eventually.
+   /* struct State
+    *
+    * Structure to hold state variables.
+    *
+    * float x:       the x-component of the state coordinate in cm
+	* float y:       the y-component of the state coordinate in cm
+	* float heading: the heading of the craft. Measured in radians
+	*                from the x-axis.
 	*/
 	typedef struct State {
 		float x;
