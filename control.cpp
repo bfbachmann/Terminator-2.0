@@ -29,7 +29,7 @@
 	destination. 
  */
 void go(State state, Vector destination, bool stopAtDestination = false) {
-	float v, w, desired_heading, right_w, left_w;
+	float v, w, desired_heading, right_w, left_w, error;
 	Vector goal;
 	
 	/* Create goal vector */ 
@@ -39,8 +39,9 @@ void go(State state, Vector destination, bool stopAtDestination = false) {
 	/* Determine desired heading, velocity and angular velocity */
 	velocity = sqrt(goal.x * goal.x + goal.y * goal.y);
 	velocity = (velocity > MAX_SPEED) ? MAX_SPEED : velocity;
-	desired_heading = atan2(goal.y/goal.x);	
+	desired_heading = atan2(goal.y,goal.x);	
 	error = desired_heading - state.heading;
+	error = atan2(sin(error), cos(error))
 	angular_velocity = k_p * error + k_i * error * dt;
 	
 	/* Calculate wheel velocities from craft velocity */
