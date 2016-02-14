@@ -46,7 +46,7 @@ namespace Robot {
 		float x;
 		float y;
 		float heading;	
-	}
+	};
 
     
     class AI {
