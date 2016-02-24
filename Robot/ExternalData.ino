@@ -21,17 +21,59 @@ class ExternalData {
    Servo servo;
    //angle (in degrees) servo is at, 90 degrees left of straight ahead relative to the robot's heading
    int servo_angle;
+
+#pragma mark Pin variables
+    int temperaturePin;
+    int numberOfUltrasonicSensors;
+    int **ultrasonicSensorPins;
+    
+#pragma mark Caching variables
+    float lastTemperature;
+    float *lastDistances;
+    float lastReflectivity;
+    
+    bool temperatureCached;
+    bool *distancesCached;
+    bool reflectivityCached;
+
     
 public:  
 
     /*
      * The constructor for the class
      */
-    ExternalData() {
+    ExternalData(int receivedTemperaturePin, int receivedNumberOfUltrasonicSensors, int** ultrasonicSensors) {
+      // save pins
+      temperaturePin = receivedTemperaturePin;
+      numberOfUltrasonicSensors = receivedNumberOfUltrasonicSensors;
+      ultrasonicSensorPins = ultrasonicSensors;
+    
+      // initialize caching variables
+      distancesCached = malloc(numberOfUltrasonicSensors * sizeof(bool));
+      clearCache();
+      lastDistances = malloc(numberOfUltrasonicSensors * sizeof(float));
+
       servo.attach(SERVO_PIN);
       servo_angle = servo.read();
     }
-    
+
+    ~ExternalData() {
+     // free allocated memory
+     free(distancesCached);
+     free(lastDistances);
+    }
+
+    void initializePins() {
+      // initialize pins
+      pinMode(temperaturePin, INPUT);
+
+      int i;
+      for (i = 0; i < numberOfUltrasonicSensors; i++) {
+        pinMode(ultrasonicSensorPins[i][0], OUTPUT);
+        pinMode(ultrasonicSensorPins[i][1], INPUT);
+      }
+    }
+
     float get_distance_at_angle(int angle) {
       servo.write(angle);
       servo_angle = angle;
@@ -74,52 +116,14 @@ private:
         // read the response pulse
         unsigned long pulseWidth = pulseIn(pulseInPin, HIGH);
         // compute the speed of sound
-        float speedOfSound = 10000.0 / (331.5 + (0.6 * temperature));
+        float speedOfSound = 20000.0 / (331.5 + (0.6 * temperature));
         // compute the distance
-        float distance = ((float)pulseWidth) / (2 * speedOfSound);
+        float distance = ((float)pulseWidth) / (speedOfSound);
         //return max value if no objects are detected in range
         if (distance > DIST_MAX) {
           return DIST_MAX;
         }
         return distance;
     }
-    
 };
-
-
-
-
-
-
-
-//these are global so they can be set up in setup() and used in loop()
-ExternalData extDat;
-float data[3] = {0, 0, 0};            //crude representation of the cache
-
-void setup() {
-
-  pinMode(DIST_SENSOR_TRIGGER_PIN1, OUTPUT);
-  pinMode(DIST_SENSOR_ECHO_PIN1, INPUT);
-  pinMode(TEMPERATURE_PIN, INPUT);
-  Serial.begin(9600);
-  extDat = ExternalData();
-}
-
-void loop() {
-
-  extDat.get_distances(data);
-
-  int i;
-  for (i = 0; i < 3; i++) {
-    Serial.print(data[i]);        //for debugging
-    Serial.print("\t\t");
-  }
-  Serial.println("\nScanning: \n");
-
-  for (i = 0; i < 20, i++) {
-    Serial.println(exDat.get_distance_at_angle(9*i));
-  }
-  
-  delay(100);
-}
 
