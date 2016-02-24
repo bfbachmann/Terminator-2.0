@@ -25,7 +25,6 @@ class ExternalData {
 public:
     
     
-    
 private:
     
     float readTemperature() {

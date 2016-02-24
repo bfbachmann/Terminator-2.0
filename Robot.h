@@ -9,21 +9,25 @@
 #ifndef robot_h
 #define robot_h
 
-class Robot {
-public:
-    // these constructors are subject to change
-    Robot();
-    ~Robot();
+namespace Robot {
+    class AI;
+    class ExternalData;
+    class Control;
     
-    /*
-     * void run()
-     *
-     * Runs the robot.
-     */
-    void run();
-};
-
-namespace robot {
+    class Base {
+    public:
+        // these constructors are subject to change
+        Base();
+        ~Base();
+        
+        /*
+         * void run()
+         *
+         * Runs the robot.
+         */
+        void run();
+    };
+    
     /*
      * struct Vector
      *
@@ -152,7 +156,7 @@ namespace robot {
          *                          threshold of the requested destination, the go
          *                          function will return a boolean true.
          */
-        bool go(State state, Vector destination);
+        bool go(State *state, Vector *destination, bool stopAtDestination);
         
         /*
          * void stop()
@@ -193,6 +197,7 @@ namespace robot {
          */
         void orientRangeFinder(int orientation);
 		
+    private:
 	   /*	void wheelControl(float right_velocity, float left_velocity)
 		*
 		*	Applies PWM signal to wheel motors. Must convert velocities into
@@ -211,7 +216,7 @@ namespace robot {
 		*						  second, to be applied to the right wheel. Similar
 		*						  conditions to the left_w parameter.
 		*/
-		void wheelControl(float left_w, right_w);
+		void wheelControl(float left_w, float right_w);
 
 	   /*	void calculateOdometry(State * state, float left_w, float right_w)
 		*
