@@ -317,17 +317,17 @@ namespace robot {
          * range finder in cm. This function may perform caching.
          *
          * Parameters:
-         * int sensor:  the index of the ultrasonic range finder that should be used to
-         *              acquire data.
-         * bool fresh:  if true, the cache will be ignored and fresh data will be 
-         *              read from the appropriate sensors.
+         * uint8_t pulseOutPin:  pin to send the read pulse to
+		 * uint8_t pulseInPin:  pin to recieve the output from the sensor on
+         * bool fresh:  		 if true, the cache will be ignored and fresh data will be 
+         *              		 read from the appropriate sensors.
          */
-        float distance(int sensor, bool fresh = false);
+        float read_distance(uint8_t pulseOutPin, uint8_t pulseInPin, bool fresh = false);
         
         /*
          * float* distances(bool fresh)
          * 
-         * Returns the current distance to the nearest object as seen by each ultrasonic
+         * Returns the current distance to the nearest object in line of sight as seen by each ultrasonic
          * range finder. The units of the return value will be the same as the distance()
          * function. The return array will be indexed as follows:
          *
@@ -341,10 +341,11 @@ namespace robot {
          * This function may perform caching.
          *
          * Parameters:
-         * bool fresh:  if true, the cache will be ignored and fresh data will be
-         *              read from the appropriate sensors.
+         * bool fresh:  	if true, the cache will be ignored and fresh data will be
+         *              	read from the appropriate sensors.
+		 * float* cache:	the location to in memory to store the sensor data
          */
-        float* distances(bool fresh = false);
+        float* read_distances(float* cache, bool fresh = false);
         
         /*
          * void reflectivity(bool fresh)
@@ -357,6 +358,16 @@ namespace robot {
          *              read from the appropriate sensors.
          */
         float reflectivity(bool fresh = false);
+		
+		/*
+		 * 
+		 * Reads distances from -90 to 90 degrees from "forward" relative to the direction the 
+		 * robot is facing and stores each distance in the cache.
+		 * 
+		 * Parameters:
+		 * float* cache: 	the location to in memory to store the sensor data
+		 */
+		 float* survey(float *cache);
     };
 }
 

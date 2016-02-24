@@ -1,3 +1,5 @@
+#include <servo.h>
+
 //assuming each trig_pin is in sequence, and each echo_pin is in sequence
 #define trig1_pin
 #define echo1_pin
@@ -5,9 +7,13 @@
 #define echo2_pin
 #define trig3_pin
 #define temp_pin
+#define servo_pin
 
+//create a servo object
+Servo servo
 
 void setup() {
+  servo.attach(servo_pin);
   pinMode(trig1_pin, trig2_pin, trig3_pin, OUTPUT);
   pinMode(echo1_pin, echo2_pin, echo3_pin, INPUT);
 
