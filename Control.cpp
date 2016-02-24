@@ -76,6 +76,7 @@ float Robot::Control::wheelVelocity(float w, float v, int wheel) {
     else
         return (2*v - w*L)/(2*R);
 }
+
 /*	Applies PWM signal to wheel motors. This function will require access
  *	to pin numbers.
  */

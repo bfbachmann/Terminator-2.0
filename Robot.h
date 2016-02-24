@@ -341,7 +341,8 @@ namespace Robot {
          *          1       distance from sensor 1 to nearest object
          *          2       distance from sensor 2 to nearest object
          *
-         * and so on.
+         * and so on. The value returned by this function will be dynamically allocated,
+         * and must be freed by the caller.
          *
          * This function may perform caching.
          *
@@ -362,6 +363,27 @@ namespace Robot {
          *              read from the appropriate sensors.
          */
         float reflectivity(bool fresh = false);
+        
+    private:
+#pragma mark Pin variables
+        int temperaturePin;
+        int numberOfUltrasonicSensors;
+        int **ultrasonicSensorPins;
+        
+#pragma mark Caching variables
+        float lastTemperature;
+        float *lastDistances;
+        float lastReflectivity;
+        
+        bool temperatureCached;
+        bool *distancesCached;
+        bool reflectivityCached;
+        
+#pragma mark Data acquisition functions
+        float readTemperature();
+        void pulseOut(uint8_t pin, int microseconds);
+        float readDistance(uint8_t triggerPin, uint8_t echoPin, float temperature);
+        
     };
 }
 
