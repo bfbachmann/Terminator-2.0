@@ -13,20 +13,6 @@ class AI;
 class ExternalData;
 class Control;
 
-class Base {
-public:
-    // these constructors are subject to change
-    Base();
-    ~Base();
-    
-    /*
-     * void run()
-     *
-     * Runs the robot.
-     */
-    void run();
-};
-
 /*
  * struct Vector
  *
