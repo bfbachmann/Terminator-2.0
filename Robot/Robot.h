@@ -279,6 +279,8 @@ public:
     ExternalData(int temperaturePin, int numberOfUltrasonicSensors, int** ultrasonicSensors);
     ~ExternalData();
     
+    void initializePins();
+    
     /*
      * void clearCache()
      *
@@ -336,7 +338,7 @@ public:
      *              	read from the appropriate sensors.
      * float* cache:	the location to in memory to store the sensor data
      */
-    float* read_distances(float* cache, bool fresh = false);
+    float* distances(float* cache, bool fresh = false);
     
     /*
      * void reflectivity(bool fresh)
