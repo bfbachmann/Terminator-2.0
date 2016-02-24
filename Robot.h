@@ -373,7 +373,7 @@ namespace Robot {
 		 * Parameters:
 		 * float* cache: 	the location to in memory to store the sensor data
 		 */
-		 float* survey(float *cache);
+		 float* get_distances(float *cache);
 
         
     private:
