@@ -15,6 +15,10 @@
 #define DIST_SENSOR_ECHO_PIN1 4
 #define DIST_SENSOR_ECHO_PIN2 5
 #define DIST_SENSOR_ECHO_PIN3 6
+#define REFLECTIVITY_PIN1 A0
+#define REFLECTIVITY_PIN2 A1
+#define REFLECTIVITY_PIN3 A2
+#define REFLECTIVITY_PIN4 A3
 
 /*Output pins for sensors*/
 #define DISTANCE_SENSOR_TRIGGER_PIN1 7
@@ -27,7 +31,9 @@ Robot::ExternalData::ExternalData(int receivedTemperaturePin, int receivedNumber
     temperaturePin = receivedTemperaturePin;
     numberOfUltrasonicSensors = receivedNumberOfUltrasonicSensors;
     ultrasonicSensorPins = ultrasonicSensors;
-    
+
+    // ----> need new parameters?? ----> numberOfReflectivitySensors = receivedNumberOfReflectivitySensors;
+	
     // initialize caching variables
     distancesCached = malloc(numberOfUltrasonicSensors * sizeof(bool));
     clearCache();
@@ -93,9 +99,27 @@ Robot::ExternalData::distances(int sensor, bool fresh = false) {
     return returnValues;
 }
 
+/* JORDAN: I'm putting this here because I didn't want to mess around with the .ino file
+ * you created
+ *
+ * Notes:
+ *
+ * (1) There are four reflective optical sensors, so we'll need to return an array of floats
+ * (2) defined analog pins at the top
+ * (3) I have assumed a new parameter in the constructor called numberOfReflectivitSensors
+ *
+ */
 Robot::ExternalData::reflectivity(bool fresh = false) {
-    // TODO: implement
-    return -1;
+	float *returnValues = malloc(numberOfReflectivitySensors * sizeof(float));
+	returnValues[0] = (float)analogRead(REFLECTIVITY_PIN1);
+	returnValues[1] = (float)analogRead(REFLECTIVITY_PIN2);
+	returnValues[2] = (float)analogRead(REFLECTIVITY_PIN3);
+	returnValues[3] = (float)analogRead(REFLECTIVITY_PIN4);
+    return returnValues;
+}
+
+float Robot::ExternalData::readReflectivity(uint8_t sensor) {
+	return (float)analogRead(reflectivitySensorPins[i]) 	
 }
 
 #pragma mark Private data acquisition functions

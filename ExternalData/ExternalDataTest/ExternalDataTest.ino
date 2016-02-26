@@ -1,3 +1,5 @@
+#include <Servo.h>
+
 
 /*Input pins to be read from*/
 #define TEMPERATURE_PIN 5
@@ -11,42 +13,19 @@
 #define DIST_SENSOR_TRIGGER_PIN3 9
 
 /*the pin for writing to the servo motor*/
-#define SERVO_PIN
+#define SERVO_PIN A1
 
 #define DIST_MAX 200
 #define DIST_MIN 0
+
+
 
 class ExternalData {
 
    Servo servo;
    //angle (in degrees) servo is at, 90 degrees left of straight ahead relative to the robot's heading
    int servo_angle;
-    
-public:  
 
-    /*
-     * The constructor for the class
-     */
-    ExternalData() {
-      servo.attach(SERVO_PIN);
-      servo_angle = servo.read();
-    }
-    
-    float get_distance_at_angle(int angle) {
-      servo.write(angle);
-      servo_angle = angle;
-      return read_distance(DIST_SENSOR_TRIGGER_PIN2, DIST_SENSOR_ECHO_PIN2, read_tempterature());
-    }
-    
-    float *get_distances(float *data) {
-      int i = 0;
-      float temperature = read_temperature(); 
-      for (i = 0; i < 3; i++) {
-        data[i] = readDistance(DIST_SENSOR_TRIGGER_PIN1, DIST_SENSOR_ECHO_PIN1, temperature);
-      }
-      return data;
-    }
-    
 private:
     
     float read_temperature() {
@@ -67,7 +46,7 @@ private:
         digitalWrite(pin, LOW);
     }
     
-    float readDistance(uint8_t pulseOutPin, uint8_t pulseInPin, float temperature) {
+    float read_distance(uint8_t pulseOutPin, uint8_t pulseInPin, float temperature) {
         //Serial.print("calling readDistance()\n");           //for debugging
         // send the trigger pulse
         pulseOut(pulseOutPin, 10);
@@ -84,11 +63,34 @@ private:
         return distance;
     }
     
+public:  
+
+    /*
+     * The constructor for the class
+     */
+    ExternalData() {
+      servo.attach(SERVO_PIN);
+      servo_angle = servo.read();
+    }
+    
+    float get_distance_at_angle(int angle) {
+      servo.write(angle);
+      servo_angle = angle;
+      float temperature = read_temperature();
+      float distance = read_distance(DIST_SENSOR_TRIGGER_PIN2, DIST_SENSOR_ECHO_PIN2, temperature);
+      return distance;
+    }
+    
+    float *get_distances(float *data) {
+      int i = 0;
+      float temperature = read_temperature(); 
+      for (i = 0; i < 3; i++) {
+        data[i] = read_distance(DIST_SENSOR_TRIGGER_PIN1, DIST_SENSOR_ECHO_PIN1, temperature);
+      }
+      return data;
+    }
+    
 };
-
-
-
-
 
 
 
@@ -96,13 +98,13 @@ private:
 ExternalData extDat;
 float data[3] = {0, 0, 0};            //crude representation of the cache
 
+
 void setup() {
 
   pinMode(DIST_SENSOR_TRIGGER_PIN1, OUTPUT);
   pinMode(DIST_SENSOR_ECHO_PIN1, INPUT);
   pinMode(TEMPERATURE_PIN, INPUT);
   Serial.begin(9600);
-  extDat = ExternalData();
 }
 
 void loop() {
@@ -116,8 +118,8 @@ void loop() {
   }
   Serial.println("\nScanning: \n");
 
-  for (i = 0; i < 20, i++) {
-    Serial.println(exDat.get_distance_at_angle(9*i));
+  for (i = 0; i < 20; i++) {
+    Serial.println(extDat.get_distance_at_angle(9*i));
   }
   
   delay(100);
