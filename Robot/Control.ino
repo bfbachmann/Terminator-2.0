@@ -6,23 +6,42 @@ By Chad Lagore
 */
 
 #include <math.h>
+<<<<<<< HEAD
 #include "Robot.h"
+=======
+
+typedef struct {
+    float x;
+    float y;
+} Vector;
+
+typedef struct {
+    float x;
+    float y;
+    float heading;
+    float v;
+    float w; 
+    float dt;   
+} State;
+>>>>>>> 250fe491839e687635cb94bab9be610d6f5713b3
 
 // Geometric constants of robot vehicle.
 // Wheel radius (R) and wheel to wheel length (L).
-#define R 3
-#define L 15
+#define R 6.5
+#define L 16
 
 // PID controller tuning.
 #define k_p 1.5
-#define k_i 0
+#define k_i 1
 #define k_d 0
 
 // Finite time step in ms.
-#define dt 2
+#define dt 1
 
 // Max speed in cm/s. 
-#define MAX_SPEED 20
+#define MAX_SPEED 61
+
+#define _USE_MATH_DEFINES
 
 #pragma mark Begin Control implementation
 
@@ -93,11 +112,21 @@ float Control::wheelVelocity(float w, float v, int wheel) {
 }
 
 /*  Applies PWM signal to wheel motors. This function will require access
-*  to pin numbers.
-*/
+ *  to pin numbers.
+ */
 void Control::wheelControl(float left_w, float right_w) {
+    int E1 = 5;
+    int E2 = 6;
+    int M1 = 4;
+    int M2 = 7;
+    int left_norm, right_norm = 0;
     
-}
+    left_norm = (left_w >= 6.66) ? 255 : left_w*255/6.66;
+    right_norm = (right_w >= 6.66) ? 255 : right_w*255/6.66;
+    
+    digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
+    analogWrite(E1, left_norm); analogWrite(E2, right_norm);
+  }
 
 /*  Calculates distance travelled in time step and updates state variables.
 *  
