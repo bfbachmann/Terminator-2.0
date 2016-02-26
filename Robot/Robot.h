@@ -382,10 +382,11 @@ public:
 	* 
 	*
 	* Parameters:
+    * int sensor:  Reflectivity sensor from which value should be read.
 	* bool fresh:  if true, the cache will be ignored and fresh data will be
 	*              read from the appropriate sensors.
 	*/
-	float* reflectivity(bool fresh = false);
+	float reflectivity(int sensor, bool fresh = false);
  
 private:
 #pragma mark Pin variables
@@ -395,26 +396,19 @@ private:
     int numberOfReflectivitySensors;
     uint8_t *reflectivitySensorPins;
     
-#pragma mark Varaible to track which ultrasonic sensor is mobile
-    int mobileUltrasonicSensor;
-    
 #pragma mark Caching variables
 	float lastTemperature;
 	float *lastDistances;
-	float lastReflectivity;
+	float *lastReflectivities;
     
 	bool temperatureCached;
 	bool *distancesCached;
-	bool reflectivityCached;
+	bool *reflectivitiesCached;
     
 #pragma mark Data acquisition functions
 	float readTemperature();
 	void pulseOut(uint8_t pin, int microseconds);
-	float readDistance(uint8_t triggerPin, uint8_t echoPin, float temperature);
-    
-#pragma mark Control variable
-    Control *control;
-
+	float readDistance(int sensor, float temperature);
 };
 
 #endif /* robot_h */

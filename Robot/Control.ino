@@ -6,24 +6,7 @@ By Chad Lagore
 */
 
 #include <math.h>
-<<<<<<< HEAD
 #include "Robot.h"
-=======
-
-typedef struct {
-    float x;
-    float y;
-} Vector;
-
-typedef struct {
-    float x;
-    float y;
-    float heading;
-    float v;
-    float w; 
-    float dt;   
-} State;
->>>>>>> 250fe491839e687635cb94bab9be610d6f5713b3
 
 // Geometric constants of robot vehicle.
 // Wheel radius (R) and wheel to wheel length (L).

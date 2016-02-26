@@ -16,6 +16,7 @@ ExternalData::ExternalData(int receivedTemperaturePin, int receivedNumberOfUltra
     
 	// initialize caching variables
 	distancesCached = (bool*)malloc(numberOfUltrasonicSensors * sizeof(bool));
+	reflectivitiesCached = (bool*)malloc(numberOfReflectivitySensors * sizeof(bool));
 	clearCache();
 	lastDistances = (float*)malloc(numberOfUltrasonicSensors * sizeof(float));
 }
@@ -41,12 +42,15 @@ void ExternalData::initializePins() {
 
 void ExternalData::clearCache() {
     temperatureCached = false;
-    reflectivityCached = false;
     
     int i;
     for (i = 0; i < numberOfUltrasonicSensors; i++) {
         distancesCached[i] = false;
     }
+		
+		for (i = 0; i < numberOfReflectivitySensors; i++) {
+			reflectivitiesCached[i] = false;
+		}
 }
 
 #pragma mark Public data acquisition functions
@@ -71,7 +75,7 @@ float ExternalData::distance(int sensor, bool fresh) {
         }
     }
     
-    lastDistances[sensor] = readDistance(ultrasonicSensorPins[sensor][0], ultrasonicSensorPins[sensor][1], temperature());
+    lastDistances[sensor] = readDistance(sensor, temperature());
     distancesCached[sensor] = true;
     
     return lastDistances[sensor];
@@ -88,6 +92,10 @@ float *ExternalData::distances(bool fresh) {
     return returnValues;
 }
 
+float ExternalData::reflectivity(int sensor, bool fresh) {
+	// TODO: implement
+	return -1;
+}
 
 // float ExternalData::get_distance_at_angle(int angle) {
 // 	control.orientRangeFinder(angle);
@@ -112,11 +120,11 @@ void ExternalData::pulseOut(uint8_t pin, int microseconds) {
 	digitalWrite(pin, LOW);
 }
     
-float ExternalData::readDistance(uint8_t triggerPin, uint8_t echoPin, float temperature) {
+float ExternalData::readDistance(int sensor, float temperature) {
 	// send the trigger pulse
-	pulseOut(triggerPin, 10);
+	pulseOut(ultrasonicSensorPins[sensor][0], 10);
 	// read the response pulse
-	unsigned long pulseWidth = pulseIn(echoPin, HIGH);
+	unsigned long pulseWidth = pulseIn(ultrasonicSensorPins[sensor][1], HIGH);
 	// compute the speed of sound
 	float speedOfSound = 20000.0 / (331.5 + (0.6 * temperature));
 	// compute the distance
