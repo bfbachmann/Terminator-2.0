@@ -16,8 +16,6 @@
 #define DIST_MAX 200
 #define DIST_MIN 0
 
-class ExternalData {
-
    Servo servo;
    //angle (in degrees) servo is at, 90 degrees left of straight ahead relative to the robot's heading
    int servo_angle;
@@ -36,13 +34,12 @@ class ExternalData {
     bool *distancesCached;
     bool reflectivityCached;
 
-    
-public:  
+ 
 
     /*
      * The constructor for the class
      */
-    ExternalData(int receivedTemperaturePin, int receivedNumberOfUltrasonicSensors, int** ultrasonicSensors) {
+    ExternalData::ExternalData(int receivedTemperaturePin, int receivedNumberOfUltrasonicSensors, int** ultrasonicSensors) {
       // save pins
       temperaturePin = receivedTemperaturePin;
       numberOfUltrasonicSensors = receivedNumberOfUltrasonicSensors;
@@ -57,13 +54,13 @@ public:
       servo_angle = servo.read();
     }
 
-    ~ExternalData() {
+    ExternalData::~ExternalData() {
      // free allocated memory
      free(distancesCached);
      free(lastDistances);
     }
 
-    void initializePins() {
+    void ExternalData::initializePins() {
       // initialize pins
       pinMode(temperaturePin, INPUT);
 
@@ -74,13 +71,13 @@ public:
       }
     }
 
-    float get_distance_at_angle(int angle) {
+    float ExternalData::get_distance_at_angle(int angle) {
       servo.write(angle);
       servo_angle = angle;
       return read_distance(DIST_SENSOR_TRIGGER_PIN2, DIST_SENSOR_ECHO_PIN2, read_tempterature());
     }
     
-    float *get_distances(float *data) {
+    float *ExternalData::distances(float *data) {
       int i = 0;
       float temperature = read_temperature(); 
       for (i = 0; i < 3; i++) {
@@ -89,9 +86,9 @@ public:
       return data;
     }
     
-private:
+
     
-    float read_temperature() {
+    float ExternalData::read_temperature() {
         //Serial.print("calling read_temperature()\n");     //for debugging
         /*read the voltage on the temperature pin*/
         float voltage = (float)analogRead(TEMPERATURE_PIN);
@@ -99,7 +96,7 @@ private:
         return (voltage * 500.0) / 1023.0;
     }
     
-    void pulseOut(uint8_t pin, int microseconds) {
+    void ExternalData::pulseOut(uint8_t pin, int microseconds) {
         //Serial.print("calling pulseOut()\n");         //for debugging
         // set the pin to high
         digitalWrite(pin, HIGH);
@@ -109,7 +106,7 @@ private:
         digitalWrite(pin, LOW);
     }
     
-    float readDistance(uint8_t pulseOutPin, uint8_t pulseInPin, float temperature) {
+    float ExternalData::readDistance(uint8_t pulseOutPin, uint8_t pulseInPin, float temperature) {
         //Serial.print("calling readDistance()\n");           //for debugging
         // send the trigger pulse
         pulseOut(pulseOutPin, 10);
@@ -125,5 +122,5 @@ private:
         }
         return distance;
     }
-};
+
 
