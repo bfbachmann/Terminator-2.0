@@ -17,24 +17,27 @@ typedef struct {
     float y;
     float heading;
     float v;
-    float w;    
+    float w; 
+    float dt;   
 } State;
 
 // Geometric constants of robot vehicle.
 // Wheel radius (R) and wheel to wheel length (L).
-#define R 3
-#define L 15
+#define R 6.5
+#define L 16
 
 // PID controller tuning.
 #define k_p 1.5
-#define k_i 0
+#define k_i 1
 #define k_d 0
 
 // Finite time step in ms.
-#define dt 2
+#define dt 1
 
 // Max speed in cm/s. 
-#define MAX_SPEED 20
+#define MAX_SPEED 61
+
+#define _USE_MATH_DEFINES
 
 #pragma mark Begin Robot::Control implementation
 
@@ -94,7 +97,17 @@ class Control {
  *  to pin numbers.
  */
   void wheelControl(float left_w, float right_w) {
+    int E1 = 5;
+    int E2 = 6;
+    int M1 = 4;
+    int M2 = 7;
+    int left_norm, right_norm = 0;
     
+    left_norm = (left_w >= 6.66) ? 255 : left_w*255/6.66;
+    right_norm = (right_w >= 6.66) ? 255 : right_w*255/6.66;
+    
+    digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
+    analogWrite(E1, left_norm); analogWrite(E2, right_norm);
   }
 
 /*  Calculates distance travelled in time step and updates state variables.
