@@ -15,27 +15,50 @@
 
 #define DIST_MAX 200
 #define DIST_MIN 0
-    
-/*
-* The constructor for the class
-*/
-ExternalData::ExternalData(int receivedTemperaturePin, int receivedNumberOfUltrasonicSensors, int** ultrasonicSensors) {
-	// save pins
-	temperaturePin = receivedTemperaturePin;
-	numberOfUltrasonicSensors = receivedNumberOfUltrasonicSensors;
-	ultrasonicSensorPins = ultrasonicSensors;
-    
-	// initialize caching variables
-	distancesCached = (bool*)malloc(numberOfUltrasonicSensors * sizeof(bool));
-	clearCache();
-	lastDistances = (float*)malloc(numberOfUltrasonicSensors * sizeof(float));
-}
 
-ExternalData::~ExternalData() {
-	// free allocated memory
-	free(distancesCached);
-	free(lastDistances);
-}
+   Servo servo;
+   //angle (in degrees) servo is at, 90 degrees left of straight ahead relative to the robot's heading
+   int servo_angle;
+
+#pragma mark Pin variables
+    int temperaturePin;
+    int numberOfUltrasonicSensors;
+    int **ultrasonicSensorPins;
+    
+#pragma mark Caching variables
+    float lastTemperature;
+    float *lastDistances;
+    float lastReflectivity;
+    
+    bool temperatureCached;
+    bool *distancesCached;
+    bool reflectivityCached;
+
+ 
+
+    /*
+     * The constructor for the class
+     */
+    ExternalData::ExternalData(int receivedTemperaturePin, int receivedNumberOfUltrasonicSensors, int** ultrasonicSensors) {
+      // save pins
+      temperaturePin = receivedTemperaturePin;
+      numberOfUltrasonicSensors = receivedNumberOfUltrasonicSensors;
+      ultrasonicSensorPins = ultrasonicSensors;
+    
+      // initialize caching variables
+      distancesCached = malloc(numberOfUltrasonicSensors * sizeof(bool));
+      clearCache();
+      lastDistances = malloc(numberOfUltrasonicSensors * sizeof(float));
+
+      servo.attach(SERVO_PIN);
+      servo_angle = servo.read();
+    }
+
+    ExternalData::~ExternalData() {
+     // free allocated memory
+     free(distancesCached);
+     free(lastDistances);
+    }
 
 void ExternalData::initializePins() {
 	// initialize pins
@@ -83,3 +106,28 @@ float ExternalData::readDistance(uint8_t pulseOutPin, uint8_t pulseInPin, float 
 	return distance;
 }
 
+    float ExternalData::get_distance_at_angle(int angle) {
+      servo.write(angle);
+      servo_angle = angle;
+      return read_distance(DIST_SENSOR_TRIGGER_PIN2, DIST_SENSOR_ECHO_PIN2, read_tempterature());
+    }
+    
+    float *ExternalData::distances(float *data) {
+      int i = 0;
+      float temperature = read_temperature(); 
+      for (i = 0; i < 3; i++) {
+        data[i] = readDistance(DIST_SENSOR_TRIGGER_PIN1, DIST_SENSOR_ECHO_PIN1, temperature);
+      }
+      return data;
+    }
+        
+    void ExternalData::pulseOut(uint8_t pin, int microseconds) {
+        //Serial.print("calling pulseOut()\n");         //for debugging
+        // set the pin to high
+        digitalWrite(pin, HIGH);
+        // wait for the prescribed time
+        delayMicroseconds(microseconds);
+        // set the pin to low
+        digitalWrite(pin, LOW);
+    }
+    

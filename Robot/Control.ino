@@ -104,4 +104,3 @@ void Control::calculateOdometry(State * state, float left_w, float right_w) {
 	state->y = state->y + distance * sin(state->heading);
 	state->heading = state->heading + (r_distance-l_distance)/L;
 }
-
