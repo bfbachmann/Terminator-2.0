@@ -343,15 +343,16 @@ public:
     /*
      * void reflectivity(bool fresh)
      *
-     * Returns the reflectivity seen by the reflective optical sensor. The units
-     * of the return value is not yet specified. This function may perform caching.
+     * Returns the reflectivities seen by the reflective optical sensors. This function
+	 * may perform caching.
+     * 
      *
      * Parameters:
      * bool fresh:  if true, the cache will be ignored and fresh data will be
      *              read from the appropriate sensors.
      */
-    float reflectivity(bool fresh = false);
-    
+    float* reflectivity(bool fresh = false);
+
     /*
      * 
      * Reads distances from -90 to 90 degrees from "forward" relative to the direction the 
