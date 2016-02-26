@@ -9,6 +9,8 @@
 #ifndef robot_h
 #define robot_h
 
+#include <Servo.h>
+
 class AI;
 class ExternalData;
 class Control;
@@ -87,19 +89,35 @@ public:
 	* must be called before any other functions.
 	*
 	* Parameters:
-	* ExternalData external_data:  The SensorData object from which necessary
-	*                              data from the outside world will be read.
-	* int in1:                     The pin to which the in1 pin of the motor
+	* uint8_t in1:                 The pin to which the in1 pin of the motor
 	*                              shield is connected.
-	* int in2:                     The pin to which the in2 pin of the motor
+	* uint8_t in2:                 The pin to which the in2 pin of the motor
 	*                              shield is connected.
-	* int in3:                     The pin to which the in3 pin of the motor
+	* uint8_t in3:                 The pin to which the in3 pin of the motor
 	*                              shield is connected.
-	* int in4:                     The pin to which the in4 pin of the motor
+	* uint8_t in4:                 The pin to which the in4 pin of the motor
 	*                              shield is connected.
+    * uint8_t rangeFinder          The pin to which the servo controlling the
+    *                              range finder is connected.
 	*/
-	Control(ExternalData external_data, int in1, int in2, int in3, int in4);
+	Control(uint8_t in1, uint8_t in2, uint8_t in3, uint8_t in4, uint8_t rangeFinder);
 	~Control();
+    
+    /*
+     * void initializePins()
+     *
+     * Sets Arduino pin modes. This method should be called from setup() and before
+     * any other functions.
+     */
+    void initializePins();
+    
+    /* 
+     * void setExternalData(ExternalData *externalData)
+     *
+     * Set the ExternalData object form which data about the outside world
+     * should be collected.
+     */
+    void setExternalData(ExternalData *externalData);
     
 	/*
 	* void go(float velocity, float angular_velocity)
@@ -235,6 +253,16 @@ private:
 	*					to use in calculating state changes during a time step.
 	*/	
 	float wheelVelocity(float w, float v, int wheel);
+    
+#pragma mark Pin instance variables
+    uint8_t in1;
+    uint8_t in2;
+    uint8_t in3;
+    uint8_t in4;
+    uint8_t rangeFinderPin;
+    
+#pragma mark Servo instance variables
+    Servo rangeFinderServo;
 };
 
 /*
@@ -243,8 +271,6 @@ private:
 * Implements logic to acquire data from input devices. This class may use caching
 * in order to reduce actual accesses to hardward devices. Every data acquisition
 * method will specify its caching behaviour.
-*
-*
 */
 class ExternalData {
 public:
@@ -260,7 +286,7 @@ public:
 	*                                  is connected.
 	* int numberOfUltrasonicSensors:   the number of ultrasonic sensors that are
 	*                                  available to the robot.
-	* int** ultrasonicSensors:         pins to which each ultrasonic sensor is connected.
+	* uint8_t** ultrasonicSensors:     pins to which each ultrasonic sensor is connected.
 	*                                  The array should be formatted as follows, indexed
 	*                                  as ultrasonicSensors[index][index2]:
 	* 
@@ -274,11 +300,21 @@ public:
 	*          1       1       pin to which the echo pin of the 0th ultrasonic sensor
 	*                          is connected.
 	*
-	* And so on.
+	*                                   And so on.
+    * int numberOfReflectivitySensors:  The number of reflectivity sensors that are
+    *                                   available to the robot.
+    * uint8_t* reflectivitySensors:     Pins to which the reflectivity sensors are
+    *                                   connected.
 	*/
-	ExternalData(int temperaturePin, int numberOfUltrasonicSensors, int** ultrasonicSensors);
+	ExternalData(int temperaturePin, int numberOfUltrasonicSensors, uint8_t** ultrasonicSensors, int numberOfReflectivitySensors, uint8_t* reflectivitySensors);
 	~ExternalData();
-    
+  
+	/*
+	 * void initializePins()
+	 *
+	 * Sets Arduino pin modes. This method should be called from setup() and before
+     * any other functions.
+	 */
 	void initializePins();
     
 	/*
@@ -309,12 +345,11 @@ public:
 	* range finder in cm. This function may perform caching.
 	*
 	* Parameters:
-	* uint8_t pulseOutPin:  pin to send the read pulse to
-	* uint8_t pulseInPin:  pin to recieve the output from the sensor on
-	* bool fresh:  		 if true, the cache will be ignored and fresh data will be 
+    * int sensor:        ultrasonic sensor from which to read distance
+	* bool fresh:  		 if true, the cache will be ignored and fresh data will be
 	*              		 read from the appropriate sensors.
 	*/
-	float read_distance(uint8_t pulseOutPin, uint8_t pulseInPin, bool fresh = false);
+	float distance(int sensor, bool fresh = false);
     
 	/*
 	* float* distances(bool fresh)
@@ -336,9 +371,8 @@ public:
 	* Parameters:
 	* bool fresh:  	if true, the cache will be ignored and fresh data will be
 	*              	read from the appropriate sensors.
-	* float* cache:	the location to in memory to store the sensor data
 	*/
-	float* distances(float* cache, bool fresh = false);
+	float* distances(bool fresh = false);
     
 	/*
 	* void reflectivity(bool fresh)
@@ -352,22 +386,17 @@ public:
 	*              read from the appropriate sensors.
 	*/
 	float* reflectivity(bool fresh = false);
-
-	/*
-	* 
-	* Reads distances from -90 to 90 degrees from "forward" relative to the direction the 
-	* robot is facing and stores each distance in the cache.
-	* 
-	* Parameters:
-	* float* cache: 	the location to in memory to store the sensor data
-	*/
-	float* survey(float *cache);
  
 private:
 #pragma mark Pin variables
 	int temperaturePin;
 	int numberOfUltrasonicSensors;
-	int **ultrasonicSensorPins;
+	uint8_t **ultrasonicSensorPins;
+    int numberOfReflectivitySensors;
+    uint8_t *reflectivitySensorPins;
+    
+#pragma mark Varaible to track which ultrasonic sensor is mobile
+    int mobileUltrasonicSensor;
     
 #pragma mark Caching variables
 	float lastTemperature;
@@ -382,6 +411,9 @@ private:
 	float readTemperature();
 	void pulseOut(uint8_t pin, int microseconds);
 	float readDistance(uint8_t triggerPin, uint8_t echoPin, float temperature);
+    
+#pragma mark Control variable
+    Control *control;
 
 };
 

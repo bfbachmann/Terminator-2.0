@@ -24,7 +24,22 @@ By Chad Lagore
 // Max speed in cm/s. 
 #define MAX_SPEED 20
 
-#pragma mark Begin Robot::Control implementation
+#pragma mark Begin Control implementation
+
+Control::Control(uint8_t receivedIn1, uint8_t receivedIn2, uint8_t receivedIn3, uint8_t receivedIn4, uint8_t receivedRangeFinder) {
+	// save the pins for later
+	in1 = receivedIn1;
+	in2 = receivedIn2;
+	in3 = receivedIn3;
+	in4 = receivedIn4;
+	rangeFinderPin = receivedRangeFinder;
+	
+	rangeFinderServo.attach(rangeFinderPin);
+}
+
+Control::~Control() {
+	// TODO: implement
+}
 
 /*  go(State state, Vector destination, bool StopAtDestination = false)
     
@@ -103,4 +118,8 @@ void Control::calculateOdometry(State * state, float left_w, float right_w) {
 	state->x = state->x + distance * cos(state->heading);
 	state->y = state->y + distance * sin(state->heading);
 	state->heading = state->heading + (r_distance-l_distance)/L;
+}
+
+void Control::orientRangeFinder(int orientation) {
+	rangeFinderServo.write(orientation);
 }
