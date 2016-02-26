@@ -135,3 +135,32 @@ void Control::calculateOdometry(State * state, float left_w, float right_w) {
 void Control::orientRangeFinder(int orientation) {
 	rangeFinderServo.write(orientation);
 }
+/*
+*  Completes one time step in the control flow of a line-following behaviour.
+*/
+void Control::followLine(float s0, float s1, float s2) {
+  const int thresh = 100;
+  float factor = 1.2;
+  int E1 = 5;
+  int E2 = 6;
+  int M1 = 4;
+  int M2 = 7;
+  int left, right = 0;
+  
+  if(s1 > thresh) {
+    left = 65;
+    right = 100;//slightRight
+  }
+  else if(s2 > thresh) {
+    left = 100;
+    right = 65; // slightLeft
+  }
+  else {
+     left = 100;
+     right = 100;
+  }
+     
+  digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
+  analogWrite(E1, factor*left); analogWrite(E2, factor*right);
+  // Serial.println(factor*left);
+}
