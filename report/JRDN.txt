@@ -1,0 +1,7 @@
+Implemented external data caching, refactored code to maintain abstraction, and debugged resulting code.
+
+The biggest issues thus far were in understanding C++ and how to properly use language features, including initializing objects and default values for parameters passed ot functions. In addition, seperating declarations and implementation posed a learning curve.
+
+Making the code object-oriented has posed somewhat of a challenge in that it requires careful considerations of what specific abstractions and compartmentalizations should be made, but object-orientation has already made changing the code easier that it would have otherwise been.
+
+Currently I am working on debugging the class that manages actuation. Some issues are cropping up where variables' values are changing in a way that is unintiutive, and I am currently isolating the cause of these changes and resolving it.
