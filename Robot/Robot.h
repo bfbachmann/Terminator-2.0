@@ -253,6 +253,14 @@ private:
 	*					to use in calculating state changes during a time step.
 	*/	
 	float wheelVelocity(float w, float v, int wheel);
+        /*	void followLine(float s0, float s1, float s2)	
+	*
+	*	Completes one time step in the control flow of a line-following behaviour.
+	*	
+	*	Parameters:		
+	*	float s0,s1,s2:		Optical sensors 0-2. Sensors are numbered left to right.
+	*/	
+        void followLine(float s0, float s1, float s2);
     
 #pragma mark Pin instance variables
     uint8_t in1;
