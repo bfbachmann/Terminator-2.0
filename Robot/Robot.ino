@@ -16,7 +16,10 @@
 #define DIST_SENSOR_3_TRIGGER_PIN 9
 
 // servo to orient the rotatable distance sensor
-#define SERVO_PIN 5
+#define SERVO_PIN 9
+
+// mode swtich
+#define MODE_SWITCH_PIN 3
 
 // reflectivity sensors
 #define NUMBER_OF_REFLECTIVITY_SENSORS 4
@@ -40,14 +43,17 @@ uint8_t reflectivitySensors[4] = {
 	REFLECTIVITY_SENSOR_4_PIN
 };
 
-ExternalData externalData(TEMPERATURE_SENSOR_PIN, NUMBER_OF_ULTRASONIC_SENSORS, (uint8_t**)ultrasonicSensorPins, NUMBER_OF_REFLECTIVITY_SENSORS, (uint8_t*)reflectivitySensors);
+ExternalData externalData(TEMPERATURE_SENSOR_PIN, NUMBER_OF_ULTRASONIC_SENSORS, (uint8_t**)ultrasonicSensorPins, NUMBER_OF_REFLECTIVITY_SENSORS, (uint8_t*)reflectivitySensors, MODE_SWITCH_PIN);
 Control control((uint8_t)0, (uint8_t)0, (uint8_t)0, (uint8_t)0, (uint8_t)SERVO_PIN);
+AI ai(externalData, control);
 
 void setup() {
 	externalData.initializePins();
+  pinMode(SERVO_PIN, OUTPUT);
+  control.attachRangeFinder();
 	Serial.begin(9600);
 }
 
 void loop() {
-	
+
 }

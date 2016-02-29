@@ -4,9 +4,10 @@
  
 #pragma mark Initializers
 
-ExternalData::ExternalData(int receivedTemperaturePin, int receivedNumberOfUltrasonicSensors, uint8_t** ultrasonicSensors, int receivedNumberOfReflectivitySensors, uint8_t* reflectivitySensors) {
+ExternalData::ExternalData(int receivedTemperaturePin, int receivedNumberOfUltrasonicSensors, uint8_t** ultrasonicSensors, int receivedNumberOfReflectivitySensors, uint8_t* reflectivitySensors, int modePin) {
 	// save pins
 	temperaturePin = receivedTemperaturePin;
+  mode_pin = modePin;
 	
 	numberOfUltrasonicSensors = receivedNumberOfUltrasonicSensors;
 	ultrasonicSensorPins = ultrasonicSensors;
@@ -32,6 +33,7 @@ ExternalData::~ExternalData() {
 void ExternalData::initializePins() {
 	// initialize pins
 	pinMode(temperaturePin, INPUT);
+  pinMode(mode_pin, INPUT);
 
 	int i;
 	for (i = 0; i < numberOfUltrasonicSensors; i++) {
@@ -97,10 +99,9 @@ float ExternalData::reflectivity(int sensor, bool fresh) {
 	return -1;
 }
 
-// float ExternalData::get_distance_at_angle(int angle) {
-// 	control.orientRangeFinder(angle);
-// 	return readDistance(ultrasonicSensors[1][0], ultrasonicSensors[1][1], read_tempterature());
-// }
+uint8_t ExternalData::mode() {
+  return digitalRead(mode_pin);
+}
 
 #pragma mark Private functions
         
@@ -135,3 +136,5 @@ float ExternalData::readDistance(int sensor, float temperature) {
 	}
 	return distance;
 }
+
+

@@ -36,12 +36,17 @@ Control::Control(uint8_t receivedIn1, uint8_t receivedIn2, uint8_t receivedIn3, 
 	in4 = receivedIn4;
 	rangeFinderPin = receivedRangeFinder;
 	
-	rangeFinderServo.attach(rangeFinderPin);
+//	rangeFinderServo.attach(rangeFinderPin);
 }
 
 Control::~Control() {
 	// TODO: implement
 }
+
+void Control::attachRangeFinder() {
+  rangeFinderServo.attach(rangeFinderPin);
+}
+
 
 /*  go(State state, Vector destination, bool StopAtDestination = false)
     
@@ -132,6 +137,10 @@ void Control::calculateOdometry(State * state, float left_w, float right_w) {
 	state->heading = state->heading + (r_distance-l_distance)/L;
 }
 
+/*
+ * Set the servo motor to point in the direction 
+ * specified by the orientation parameter.
+ */
 void Control::orientRangeFinder(int orientation) {
 	rangeFinderServo.write(orientation);
 }
