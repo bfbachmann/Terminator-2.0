@@ -44,7 +44,10 @@ typedef struct {
 	float y;
 	float heading;
 	float v;
-	float w;    
+	float w;
+        float dt;
+        int  l_PWM;
+        int  r_PWM;
 } State;
 
 
@@ -200,7 +203,7 @@ public:
 	*/
 	void orientRangeFinder(int orientation);
     
-private:
+public:
 	/*	void wheelControl(float right_velocity, float left_velocity)
 	*
 	*	Applies PWM signal to wheel motors. Must convert velocities into
@@ -219,7 +222,7 @@ private:
 	*						  second, to be applied to the right wheel. Similar
 	*						  conditions to the left_w parameter.
 	*/
-	void wheelControl(float left_w, float right_w);
+	void wheelControl(State * state, float left_w, float right_w);
 
 	/*	void calculateOdometry(State * state, float left_w, float right_w)
 	*

@@ -1,0 +1,57 @@
+\documentclass{article}
+
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{tikz}
+
+\begin{document}
+
+\textbf{Control:} Three basic functionalities of our robot are defined as follows. The first functionality we are calling \textit{Ping-Pong}. This system basically drives straight until it reaches an obstacle, looks left and right with a servo motor and sensor, chooses a clear path and drives away from the obstacle. It exhibits no long-term goals, but simply avoids obstacle, "Ping-Ponging" between them. The second functionality is \textit{Line-Follower}. Line-follower senses a line and attempts to follow it. The third functionality is \textit{Go-To-Goal}. \textit{Go-To-Goal} views the entire world as a Cartesian plane; it accepts an $x,y$ coordinate point as a goal coordinate, and it steers the robot towards this point. The origin of this plane is set as the point where the robot is turned on.
+
+\begin{center}
+\begin{tikzpicture}
+
+    % horizontal axis
+    \draw[dotted,->] (-5,0) -- (6,0) node[anchor=north]                              {$x$};
+
+    %shapes
+    \draw (0,0) circle (1cm);
+
+    % ranges
+    \draw	   (-5.5,-0.5) node{{\scriptsize Figure 1}};
+    \draw      (5.5,2) node{{\scriptsize Current Heading}};
+
+    % vertical axis
+    \draw[dotted,->] (0,0) -- (0,4) node[anchor=east] {$y$};
+
+    % Vectors and lines.
+    \draw[dashed, ->] (0,0) -- (4,2);
+    \draw[dotted,<->] (-.447,.894) -- (.447,-.894);
+    \draw[->] (-.447,.894) -- (1.342,1.789);
+    \draw[->] (.447,-.894) -- (2.236,0);
+    \draw [dotted] (1.1,0) parabola[bend at end] (1.0,.5);
+    
+    % Letters and labels.
+    \draw (1.5,0.25) node {$\phi$}
+          (-.25,-.25) node {$L$}
+          (1,2) node {$\vec{v_l}$}
+          (2.4,-0.3) node {$\vec{v_r}$};
+    
+    
+\end{tikzpicture}
+\end{center}
+
+\textbf{Models:} There are three models to describe how our robot is controlled. The first is the finite time step. Every time step is on the order of 2-3ms. Within each step, a slight adjustment is made to the heading, a distance traveled by each wheel is calculated, and the state of the robot is updated. The robot's state includes variables such as it's $x,y$ coordinates, speed, angular velocity and current time step size; this information is held in a structure, and is updated every time step. The time step helps to make very smooth changes to the trajectory of the robot.
+\\\\
+The second model is the PID controller for selecting an angular velocity. The angular velocity is always set proportional to the difference between the current heading and the desired heading. This ensures that the robot will turn fastest when it is facing away from its goal, and it will turn slowest when it is nearly facing its goal. The heading is always some angle $\phi$ from the $x$ axis, as seen in Figure 1.
+\\\\
+The final model is the differential drive abstraction. It is unintuitive that the robot is controlled by two wheel speeds. We would prefer to give the robot a coordinate, and have it make the appropriate adjustments to get itself to that coordinate. This brings about the need for a differential drive abstraction. Having calculated the angular velocity, $\omega$, using the PID controller, and selecting a velocity, $v$, at which to travel, the following two functions were derived from the kinematic relationship $\omega = \frac{v}{R}$ give appropriate left and right wheel speeds:
+
+$$v_l = \frac{2v+\omega L}{2R}$$
+$$v_r = \frac{2v-\omega L}{2R}$$
+
+Where $R$ is the wheel radius and $L$ is the width of the car. A function implements speeds to the wheels using this transformation when we want to steer the robot.
+\\\\
+\textbf{Testing:} We began by running simulations in C++ to show how the robot would react to certain goal coordinates. The robot always begins facing $\frac{\pi}{2}$. These simulations helped us tweek our model until the hardware was sufficiently built. Once the hardware was complete, including building the robot and soldering the motor cables, we put some of our designs into testing on the physical system. We have the \textit{Line-Follower} working at 50\% of top motor speed. The \textit{Go-To-Goal} controller gets within 25cm of its goal, but currently fails to stop. \textit{Ping-Pong} inherits the control capabilities of \textit{Go-To-Goal}, but is currently waiting for a servo motor installation to do physical testing. 
+
+\end{document}

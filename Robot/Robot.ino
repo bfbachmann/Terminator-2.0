@@ -42,12 +42,31 @@ uint8_t reflectivitySensors[4] = {
 
 ExternalData externalData(TEMPERATURE_SENSOR_PIN, NUMBER_OF_ULTRASONIC_SENSORS, (uint8_t**)ultrasonicSensorPins, NUMBER_OF_REFLECTIVITY_SENSORS, (uint8_t*)reflectivitySensors);
 Control control((uint8_t)0, (uint8_t)0, (uint8_t)0, (uint8_t)0, (uint8_t)SERVO_PIN);
+State state;
+Vector destination;
 
 void setup() {
-	externalData.initializePins();
-	Serial.begin(9600);
+   externalData.initializePins();
+   /*
+   state.x = 0;
+   state.y = 0;
+   state.v = 0;
+   state.w = 0;
+   state.dt = 1;
+   state.heading = M_PI/2;
+   destination.x = 0;
+   destination.y = 100;
+   */
+   Serial.begin(9600);
+   pinMode(A0, INPUT);
+   pinMode(A1, INPUT);
+   pinMode(A2, INPUT);
+   delay(1000);
+   
 }
 
 void loop() {
-	
+  
+  
+  
 }
