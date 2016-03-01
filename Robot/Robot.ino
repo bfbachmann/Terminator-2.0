@@ -21,10 +21,10 @@
 // reflectivity sensors
 #define NUMBER_OF_REFLECTIVITY_SENSORS 4
 
-#define REFLECTIVITY_SENSOR_1_PIN 0
-#define REFLECTIVITY_SENSOR_2_PIN 0
-#define REFLECTIVITY_SENSOR_3_PIN 0
-#define REFLECTIVITY_SENSOR_4_PIN 0
+#define REFLECTIVITY_SENSOR_1_PIN A0
+#define REFLECTIVITY_SENSOR_2_PIN A1
+#define REFLECTIVITY_SENSOR_3_PIN A2
+#define REFLECTIVITY_SENSOR_4_PIN A3
 
 // variables required to initialize ExternalData
 uint8_t ultrasonicSensorPins[3][2] = {
@@ -59,23 +59,22 @@ void setup() {
    pinMode(A0, INPUT);
    pinMode(A1, INPUT);
    pinMode(A2, INPUT);
+   pinMode(A3, INPUT);
    delay(1000);
-   
 }
 
 void loop() {
-  long start = 0;
-  float s1 = analogRead(A0);
-  float s2 = analogRead(A1);
-  float s3 = analogRead(A2);
-  bool atDestination = false;
+  //long start = 0;
+  float *reflectivities = externalData.reflectivity(true);
+  //bool atDestination = false;
   /*
   Serial.print(s1);   Serial.print(",");
   Serial.print(s2);Serial.print(",");
   Serial.println(s3);
   */
-  // control.followLine(s1,s2,s3);
-  while(!atDestination) {
+  control.followLine(reflectivities);
+  free(reflectivities);
+  /*while(!atDestination) {
     start = millis();
     atDestination = control.go(&state, &destination, true);
     state.dt = millis() - start;
@@ -83,6 +82,6 @@ void loop() {
     // Serial.print(state.x); Serial.print(","); Serial.println(state.y);
   }
 
-  delay(10000);
+  delay(10000);*/
   
 }

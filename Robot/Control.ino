@@ -144,7 +144,7 @@ void Control::orientRangeFinder(int orientation) {
 /*
 *  Completes one time step in the control flow of a line-following behaviour.
 */
-void Control::followLine(float s0, float s1, float s2) {
+void Control::followLine(float *reflectivities) {
   const int thresh = 100;
   float factor = 1.2;
   int E1 = 5;
@@ -152,20 +152,25 @@ void Control::followLine(float s0, float s1, float s2) {
   int M1 = 4;
   int M2 = 7;
   int left, right = 0;
-  
-  if(s1 > thresh) {
+
+  // turn left
+  if(reflectivities[0] > thresh) {
     left = 65;
-    right = 100;//slightRight
-  }
-  else if(s2 > thresh) {
+    right = 100;
+  // or turn right
+  } else if(reflectivities[3] > thresh) {
     left = 100;
-    right = 65; // slightLeft
-  }
-  else {
+    right = 65;
+  // or drive straight
+  } else {
      left = 100;
      right = 100;
   }
-     
+
+  Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');
+  Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
+
+  
   digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
   analogWrite(E1, factor*left); analogWrite(E2, factor*right);
   // Serial.print(factor*left);   Serial.println(factor*right); 

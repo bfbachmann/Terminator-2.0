@@ -92,9 +92,13 @@ float *ExternalData::distances(bool fresh) {
     return returnValues;
 }
 
-float ExternalData::reflectivity(int sensor, bool fresh) {
-	// TODO: implement
-	return -1;
+float *ExternalData::reflectivity(bool fresh) {
+  float *returnValues = (float*)malloc(numberOfReflectivitySensors * sizeof(float));
+  // get reading from each refectivity sensor
+  for (int i = 0; i < numberOfReflectivitySensors; i++) {
+    returnValues[i] = analogRead(reflectivitySensors[i]);
+  }
+  return returnValues;
 }
 
 // float ExternalData::get_distance_at_angle(int angle) {
