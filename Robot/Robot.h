@@ -76,6 +76,18 @@ public:
 	* execute the appropriate action.
 	*/
 	void decide();
+
+private:
+
+  /*
+ * Pan the servo motor from 0 to 180 degrees and return an array 
+ * of the distances read from the distance sensor attatched to
+ * the servo. 
+ * NOTE: the caller of this function is reponisble for free()ing 
+ * array of distance values one they are no longer in use.
+ */
+  float* sweep();
+
 };
 
 /*
@@ -202,6 +214,11 @@ public:
 	*                 180
 	*/
 	void orientRangeFinder(int orientation);
+
+/*
+ * Attached the servo motor to its designated input pin.
+ */
+  void attachRangeFinder();
     
 public:
 	/*	void wheelControl(float right_velocity, float left_velocity)
@@ -321,7 +338,7 @@ public:
     * uint8_t* reflectivitySensors:     Pins to which the reflectivity sensors are
     *                                   connected.
 	*/
-	ExternalData(int temperaturePin, int numberOfUltrasonicSensors, uint8_t** ultrasonicSensors, int numberOfReflectivitySensors, uint8_t* reflectivitySensors);
+	ExternalData(int temperaturePin, int numberOfUltrasonicSensors, uint8_t** ultrasonicSensors, int numberOfReflectivitySensors, uint8_t* reflectivitySensors, int mode_pin);
 	~ExternalData();
   
 	/*
@@ -401,10 +418,19 @@ public:
 	*              read from the appropriate sensors.
 	*/
 	float* reflectivity(bool fresh = false);
+
+ /*
+  * Get the mode the robot is currently in by reading from a push-button
+  * Returns 0 if the button is pressed corresponding to LINE_MODE for 
+  * following a line on the ground, or returns 1 if the button is not 
+  * pressed curresponding to FREE_DRIVE_MODE for driving around freely.
+  */
+  uint8_t mode();
  
 private:
 #pragma mark Pin variables
 	int temperaturePin;
+  int mode_pin;
 	int numberOfUltrasonicSensors;
 	uint8_t **ultrasonicSensorPins;
     int numberOfReflectivitySensors;
