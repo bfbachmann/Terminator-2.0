@@ -24,9 +24,6 @@ By Chad Lagore
 #define k_i 0
 #define k_d 0
 
-// Finite time step in ms.
-#define dt 1
-
 // Max speed in cm/s. 
 #define MAX_SPEED 61
 
@@ -63,37 +60,35 @@ destination.
 */
 bool Control::go(State * state, Vector * destination, bool stopAtDestination) {
 	float v, w, desired_heading, right_w, left_w, error, velocity, distance;
-	Vector goal;
-    
-	/* Create goal vector */ 
-	goal.x = (destination->x - state->x);
-	goal.y = (destination->y - state->y);
-        // Serial.print(goal.x); Serial.print(","); Serial.println(goal.y);
+        Vector goal;
         
-	/* Determine desired heading, velocity and angular velocity */
-	distance = sqrt(goal.x * goal.x + goal.y * goal.y);
-	state->v = distance > 10 ? MAX_SPEED : 0;
-	desired_heading = atan2(goal.y,goal.x); 
-	error = desired_heading - state->heading;
-	error = atan2(sin(error), cos(error));
-        // Serial.print(state->heading); Serial.print(","); Serial.print(desired_heading); Serial.print(","); Serial.println(error); 
-	state->w = k_p * error + k_i * error * dt;
-        // Serial.println(state->w);
-    
-	/* Calculate wheel velocities from craft velocity */
-	left_w = wheelVelocity(state->w,state->v,0);
-	right_w = wheelVelocity(state->w,state->v,1);
-        // Serial.print(left_w); Serial.print(","); Serial.println(right_w);
-    
-	/* Implement wheel velocities */
-	wheelControl(state, left_w, right_w);
-        // Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->r_PWM);
+        /* Create goal vector */ 
+        goal.x = (destination->x - state->x);
+        goal.y = (destination->y - state->y);
         
-	/* Update state variables */
-	calculateOdometry(state, left_w, right_w);
-
-	/* Return true if within threshold of destination */
-	return (distance < 5);
+        /* Determine desired heading, velocity and angular velocity */
+        distance = sqrt(goal.x*goal.x + goal.y*goal.y);
+        state->v = MAX_SPEED;
+        desired_heading = atan2(goal.y,goal.x); 
+        error = desired_heading - state->heading;
+        error = atan2(sin(error), cos(error));
+        state->w = k_p * error + k_i * error * state->dt;
+        
+        /* Calculate wheel velocities from craft velocity */
+        left_w = wheelVelocity(state->w,state->v,0);
+        right_w = wheelVelocity(state->w,state->v,1);
+        //Serial.print(state->x); Serial.print(",");Serial.println(state->y);
+        
+        /* Implement wheel velocities */
+        wheelControl(state, left_w, right_w);
+        // Serial.print(state->x); Serial.print(",");Serial.println(state->y);
+        Serial.println(distance);
+      
+        /* Update state variables */
+        calculateOdometry(state, left_w, right_w);
+      
+        /* Return true if within threshold of destination */
+        return (distance < 5);
         
 }
 
@@ -116,16 +111,11 @@ float Control::wheelVelocity(float w, float v, int wheel) {
  *  to pin numbers.
  */
 void Control::wheelControl(State * state, float left_w, float right_w) {
-    /*int E1 = 5;  
-    int M1 = 4; 
-    int E2 = 6;                      
-    int M2 = 7;*/
-    
-    state->l_PWM = (left_w >= MAX_SPEED/R) ? 255 : ceil(left_w*255/(MAX_SPEED/R));
-    state->r_PWM = (right_w >= MAX_SPEED/R) ? 255 : ceil(right_w*255/(MAX_SPEED/R));
-    
-    digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
-    analogWrite(E1, state->r_PWM); analogWrite(E2, state->r_PWM);
+  state->l_PWM = left_w/(left_w+right_w)*2*255;
+  state->r_PWM = right_w/(left_w+right_w)*2*255;
+  
+  digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
+  analogWrite(E1, state->r_PWM); analogWrite(E2, state->l_PWM);
  }
 
 /*  Calculates distance travelled in time step and updates state variables.
@@ -135,13 +125,12 @@ void Control::wheelControl(State * state, float left_w, float right_w) {
 * 
 */
 void Control::calculateOdometry(State * state, float left_w, float right_w) {
-	// float l_distance = left_w * dt * R / 1000;
-	// float r_distance = right_w * dt * R / 1000;
+	float factor = 2.3;
         float MAX_RPM = 160 ;    // Maximum wheel RPM in ms.
-        double circumference = 2 * M_PI * R;
-        float r_distance = circumference * ((float)state->r_PWM / 255.0) * MAX_RPM * dt / 6000;
-        float l_distance = circumference * ((float)state->l_PWM / 255.0) * MAX_RPM * dt / 6000;
-	float distance = (l_distance + r_distance) / 2;
+        float circumference = 2 * M_PI * R;
+        float r_distance = circumference * ((float)state->r_PWM / 255.0) * MAX_RPM * state->dt / 60000 / factor;
+        float l_distance = circumference * ((float)state->l_PWM / 255.0) * MAX_RPM * state->dt / 60000 / factor;
+        float distance = (l_distance + r_distance) / 2;
     
         // Serial.println(MAX_RPms);
         // Serial.print(r_distance); Serial.print(","); Serial.println(l_distance);
