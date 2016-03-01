@@ -273,14 +273,18 @@ public:
 	*					to use in calculating state changes during a time step.
 	*/	
 	float wheelVelocity(float w, float v, int wheel);
-        /*	void followLine(float s0, float s1, float s2)	
+ 
+ /*	void followLine(float *reflectivities)	
 	*
 	*	Completes one time step in the control flow of a line-following behaviour.
 	*	
 	*	Parameters:		
-	*	float s0,s1,s2:		Optical sensors 0-2. Sensors are numbered left to right.
+	*	float *reflectivities:  A pointer to the location in memory storing the
+  *         readings from the reflective optical sensors. This parameter must
+  *         point to a location with at least 'numberOfReflectivitySensors'
+  *         readings.
 	*/	
-        void followLine(float s0, float s1, float s2);
+  void followLine(float *reflectivities);
     
 #pragma mark Pin instance variables
     uint8_t in1;
@@ -410,11 +414,10 @@ public:
 	* 
 	*
 	* Parameters:
-    * int sensor:  Reflectivity sensor from which value should be read.
 	* bool fresh:  if true, the cache will be ignored and fresh data will be
 	*              read from the appropriate sensors.
 	*/
-	float reflectivity(int sensor, bool fresh = false);
+	float* reflectivity(bool fresh = false);
 
  /*
   * Get the mode the robot is currently in by reading from a push-button
