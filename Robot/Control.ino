@@ -28,12 +28,12 @@ By Chad Lagore
 
 #pragma mark Begin Control implementation
 
-Control::Control(uint8_t receivedIn1, uint8_t receivedIn2, uint8_t receivedIn3, uint8_t receivedIn4, uint8_t receivedRangeFinder) {
+Control::Control(uint8_t e1, uint8_t e2, uint8_t m1, uint8_t m2, uint8_t receivedRangeFinder) {
 	// save the pins for later
-	in1 = receivedIn1;
-	in2 = receivedIn2;
-	in3 = receivedIn3;
-	in4 = receivedIn4;
+	pin_e1 = e1;
+	pin_e2 = e2;
+	pin_m1 = m1;
+	pin_m2 = m2;
 	rangeFinderPin = receivedRangeFinder;
 }
 
@@ -41,8 +41,16 @@ Control::~Control() {
 	// TODO: implement
 }
 
-void Control::attachRangeFinder() {
+void Control::initializePins() {
+  pinMode(pin_e1, OUTPUT);
+  pinMode(pin_e2, OUTPUT);
+  pinMode(pin_m1, OUTPUT);
+  pinMode(pin_m2, OUTPUT);
   pinMode(rangeFinderPin, OUTPUT);
+
+}
+
+void Control::attachRangeFinder() {
   rangeFinderServo.attach(rangeFinderPin);
 }
 
@@ -155,10 +163,6 @@ void Control::orientRangeFinder(int orientation) {
 void Control::followLine(float *reflectivities) {
   const int thresh = 100;
   float factor = 1.2;
-//  int E1 = 5;
-//  int E2 = 6;
-//  int M1 = 4;
-//  int M2 = 7;
   int left, right = 0;
 
   // turn left
@@ -179,7 +183,7 @@ void Control::followLine(float *reflectivities) {
   Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
 
   
-  digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
-  analogWrite(E1, factor*left); analogWrite(E2, factor*right);
+  digitalWrite(pin_m1, HIGH); digitalWrite(pin_m2, HIGH);
+  analogWrite(pin_e1, factor*left); analogWrite(pin_e2, factor*right);
   // Serial.print(factor*left);   Serial.println(factor*right); 
 }

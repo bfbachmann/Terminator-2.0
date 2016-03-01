@@ -50,7 +50,7 @@ uint8_t reflectivitySensors[4] = {
 };
 
 ExternalData externalData(TEMPERATURE_SENSOR_PIN, NUMBER_OF_ULTRASONIC_SENSORS, (uint8_t**)ultrasonicSensorPins, NUMBER_OF_REFLECTIVITY_SENSORS, (uint8_t*)reflectivitySensors, MODE_SWITCH_PIN);
-Control control((uint8_t)0, (uint8_t)0, (uint8_t)0, (uint8_t)0, (uint8_t)SERVO_PIN);
+Control control((uint8_t)E1, (uint8_t)E2, (uint8_t)M1, (uint8_t)M2, (uint8_t)SERVO_PIN);
 AI ai(externalData, control);
 
 State state;
@@ -59,6 +59,7 @@ Vector destination;
 void setup() {
    externalData.initializePins();
    control.attachRangeFinder();
+   control.initializePins();
    state.x = 0;
    state.y = 0;
    state.v = 0;
