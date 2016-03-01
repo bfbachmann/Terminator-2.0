@@ -115,7 +115,7 @@ public:
     * uint8_t rangeFinder          The pin to which the servo controlling the
     *                              range finder is connected.
 	*/
-	Control(uint8_t in1, uint8_t in2, uint8_t in3, uint8_t in4, uint8_t rangeFinder);
+	Control(uint8_t rangeFinder);
 	~Control();
     
     /*
@@ -287,10 +287,6 @@ public:
   void followLine(float *reflectivities);
     
 #pragma mark Pin instance variables
-    uint8_t pin_e1;
-    uint8_t pin_e2;
-    uint8_t pin_m1;
-    uint8_t pin_m2;
     uint8_t rangeFinderPin;
     
 #pragma mark Servo instance variables

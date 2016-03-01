@@ -9,7 +9,7 @@
 
 #define DIST_SENSOR_1_ECHO_PIN 12
 #define DIST_SENSOR_2_ECHO_PIN 7
-#define DIST_SENSOR_3_ECHO_PIN 6
+#define DIST_SENSOR_3_ECHO_PIN 10
 
 #define DIST_SENSOR_1_TRIGGER_PIN 11
 #define DIST_SENSOR_2_TRIGGER_PIN 8
@@ -17,12 +17,6 @@
 
 // servo to orient the rotatable distance sensor
 #define SERVO_PIN 9
-
-// pins for the motor shield
-#define E1 5  
-#define M1 4 
-#define E2 6                      
-#define M2 7 
 
 // mode swtich
 #define MODE_SWITCH_PIN 3
@@ -50,13 +44,14 @@ uint8_t reflectivitySensors[4] = {
 };
 
 ExternalData externalData(TEMPERATURE_SENSOR_PIN, NUMBER_OF_ULTRASONIC_SENSORS, (uint8_t**)ultrasonicSensorPins, NUMBER_OF_REFLECTIVITY_SENSORS, (uint8_t*)reflectivitySensors, MODE_SWITCH_PIN);
-Control control((uint8_t)E1, (uint8_t)E2, (uint8_t)M1, (uint8_t)M2, (uint8_t)SERVO_PIN);
-AI ai(externalData, control);
+Control control((uint8_t)SERVO_PIN);
+//AI ai(externalData, control);
 
 State state;
 Vector destination;
 
 void setup() {
+  Serial.begin(9600);
    externalData.initializePins();
    control.attachRangeFinder();
    control.initializePins();
@@ -73,6 +68,7 @@ void setup() {
    pinMode(A2, INPUT);
    pinMode(A3, INPUT);
    delay(1000);
+   Serial.println("Done setting up");
 }
 
 void loop() {

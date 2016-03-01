@@ -8,6 +8,12 @@ By Chad Lagore
 #include <math.h>
 #include "Robot.h"
 
+// pins for the motor shield
+#define E1 5  
+#define M1 4 
+#define E2 6                      
+#define M2 7 
+
 // Geometric constants of robot vehicle.
 // Wheel radius (R) and wheel to wheel length (L).
 #define R 6.5
@@ -28,12 +34,7 @@ By Chad Lagore
 
 #pragma mark Begin Control implementation
 
-Control::Control(uint8_t e1, uint8_t e2, uint8_t m1, uint8_t m2, uint8_t receivedRangeFinder) {
-	// save the pins for later
-	pin_e1 = e1;
-	pin_e2 = e2;
-	pin_m1 = m1;
-	pin_m2 = m2;
+Control::Control(uint8_t receivedRangeFinder) {
 	rangeFinderPin = receivedRangeFinder;
 }
 
@@ -42,10 +43,10 @@ Control::~Control() {
 }
 
 void Control::initializePins() {
-  pinMode(pin_e1, OUTPUT);
-  pinMode(pin_e2, OUTPUT);
-  pinMode(pin_m1, OUTPUT);
-  pinMode(pin_m2, OUTPUT);
+  pinMode(E1, OUTPUT);
+  pinMode(E2, OUTPUT);
+  pinMode(M1, OUTPUT);
+  pinMode(M2, OUTPUT);
   pinMode(rangeFinderPin, OUTPUT);
 
 }
@@ -183,7 +184,7 @@ void Control::followLine(float *reflectivities) {
   Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
 
   
-  digitalWrite(pin_m1, HIGH); digitalWrite(pin_m2, HIGH);
-  analogWrite(pin_e1, factor*left); analogWrite(pin_e2, factor*right);
+  digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
+  analogWrite(E1, factor*left); analogWrite(E2, factor*right);
   // Serial.print(factor*left);   Serial.println(factor*right); 
 }
