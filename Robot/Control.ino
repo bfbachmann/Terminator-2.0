@@ -161,30 +161,31 @@ void Control::orientRangeFinder(int orientation) {
 /*
 *  Completes one time step in the control flow of a line-following behaviour.
 */
-void Control::followLine(float *reflectivities) {
+void Control::followLine(float *reflectivities, State * state) {
   const int thresh = 100;
-  float factor = 1.2;
+  float factor = 1.4;
   int left, right = 0;
 
   // turn left
   if(reflectivities[0] > thresh) {
-    left = 65;
-    right = 100;
+    state->l_PWM = 55;
+    state->r_PWM = 100;
   // or turn right
   } else if(reflectivities[3] > thresh) {
-    left = 100;
-    right = 65;
+    state->l_PWM = 100;
+    state->r_PWM = 55;
   // or drive straight
+  } else if(reflectivities[0] < thresh && reflectivities[1] < thresh && reflectivities[2] < thresh && reflectivities[3] < thresh) {
+    if (state->r_PWM > state->l_PWM) { state->l_PWM = 30; }
+    else { state->r_PWM = 30; }
   } else {
      left = 100;
      right = 100;
   }
 
-  Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');
-  Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
-
-  
+  Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
+    
   digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
-  analogWrite(E1, factor*left); analogWrite(E2, factor*right);
-  // Serial.print(factor*left);   Serial.println(factor*right); 
+  analogWrite(E1, factor*state->l_PWM); analogWrite(E2, factor*state->r_PWM);
+  Serial.print(factor*state->l_PWM);   Serial.println(factor*state->r_PWM); 
 }

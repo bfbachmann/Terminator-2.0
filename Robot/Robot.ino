@@ -61,6 +61,8 @@ void setup() {
    state.w = 0;
    state.dt = 1;
    state.heading = M_PI/2;
+   state.l_PWM = 0;
+   state.r_PWM = 0;
    destination.x = 0;
    destination.y = 100;
    pinMode(A0, INPUT);
@@ -80,7 +82,7 @@ void loop() {
   Serial.print(s2);Serial.print(",");
   Serial.println(s3);
   */
-  control.followLine(reflectivities);
+  control.followLine(reflectivities, &state);
   free(reflectivities);
   /*while(!atDestination) {
     start = millis();
