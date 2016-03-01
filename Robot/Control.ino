@@ -35,8 +35,6 @@ Control::Control(uint8_t receivedIn1, uint8_t receivedIn2, uint8_t receivedIn3, 
 	in3 = receivedIn3;
 	in4 = receivedIn4;
 	rangeFinderPin = receivedRangeFinder;
-	
-//	rangeFinderServo.attach(rangeFinderPin);
 }
 
 Control::~Control() {
@@ -44,6 +42,7 @@ Control::~Control() {
 }
 
 void Control::attachRangeFinder() {
+  pinMode(rangeFinderPin, OUTPUT);
   rangeFinderServo.attach(rangeFinderPin);
 }
 
@@ -118,7 +117,7 @@ void Control::wheelControl(State * state, float left_w, float right_w) {
     
     digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
     analogWrite(E1, state->r_PWM); analogWrite(E2, state->r_PWM);
-  }
+ }
 
 /*  Calculates distance travelled in time step and updates state variables.
 *  

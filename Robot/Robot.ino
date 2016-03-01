@@ -45,24 +45,16 @@ uint8_t reflectivitySensors[4] = {
 
 ExternalData externalData(TEMPERATURE_SENSOR_PIN, NUMBER_OF_ULTRASONIC_SENSORS, (uint8_t**)ultrasonicSensorPins, NUMBER_OF_REFLECTIVITY_SENSORS, (uint8_t*)reflectivitySensors, MODE_SWITCH_PIN);
 Control control((uint8_t)0, (uint8_t)0, (uint8_t)0, (uint8_t)0, (uint8_t)SERVO_PIN);
-<<<<<<< HEAD
 AI ai(externalData, control);
 
-void setup() {
-	externalData.initializePins();
-  pinMode(SERVO_PIN, OUTPUT);
-  control.attachRangeFinder();
-	Serial.begin(9600);
-}
-
-void loop() {
-
-=======
 State state;
 Vector destination;
 
 void setup() {
-   externalData.initializePins();
+	externalData.initializePins();
+  control.attachRangeFinder();
+	Serial.begin(9600);
+
    state.x = 0;
    state.y = 0;
    state.v = 0;
@@ -71,12 +63,10 @@ void setup() {
    state.heading = M_PI/2;
    destination.x = 0;
    destination.y = 100;
-   Serial.begin(9600);
    pinMode(A0, INPUT);
    pinMode(A1, INPUT);
    pinMode(A2, INPUT);
    delay(1000);
-   
 }
 
 void loop() {
@@ -101,5 +91,4 @@ void loop() {
 
   delay(10000);
   
->>>>>>> 931d909c678d6fb172633b78d01572820f52a1d0
 }
