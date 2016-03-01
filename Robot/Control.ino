@@ -108,10 +108,10 @@ float Control::wheelVelocity(float w, float v, int wheel) {
  *  to pin numbers.
  */
 void Control::wheelControl(State * state, float left_w, float right_w) {
-    int E1 = 5;  
+    /*int E1 = 5;  
     int M1 = 4; 
     int E2 = 6;                      
-    int M2 = 7;     
+    int M2 = 7;*/
     
     state->l_PWM = (left_w >= MAX_SPEED/R) ? 255 : ceil(left_w*255/(MAX_SPEED/R));
     state->r_PWM = (right_w >= MAX_SPEED/R) ? 255 : ceil(right_w*255/(MAX_SPEED/R));
@@ -156,10 +156,10 @@ void Control::orientRangeFinder(int orientation) {
 void Control::followLine(float *reflectivities) {
   const int thresh = 100;
   float factor = 1.2;
-  int E1 = 5;
-  int E2 = 6;
-  int M1 = 4;
-  int M2 = 7;
+//  int E1 = 5;
+//  int E2 = 6;
+//  int M1 = 4;
+//  int M2 = 7;
   int left, right = 0;
 
   // turn left

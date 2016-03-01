@@ -18,6 +18,12 @@
 // servo to orient the rotatable distance sensor
 #define SERVO_PIN 9
 
+// pins for the motor shield
+#define E1 5  
+#define M1 4 
+#define E2 6                      
+#define M2 7 
+
 // mode swtich
 #define MODE_SWITCH_PIN 3
 
