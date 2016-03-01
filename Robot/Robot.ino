@@ -45,7 +45,7 @@ uint8_t reflectivitySensors[4] = {
 
 ExternalData externalData(TEMPERATURE_SENSOR_PIN, NUMBER_OF_ULTRASONIC_SENSORS, (uint8_t**)ultrasonicSensorPins, NUMBER_OF_REFLECTIVITY_SENSORS, (uint8_t*)reflectivitySensors, MODE_SWITCH_PIN);
 Control control((uint8_t)SERVO_PIN);
-//AI ai(externalData, control);
+AI ai(externalData, control);
 
 State state;
 Vector destination;

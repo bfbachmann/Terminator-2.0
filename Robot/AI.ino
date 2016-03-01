@@ -7,8 +7,8 @@
  * Constructor for the AI class
  */
 AI::AI(ExternalData external_data, Control control_instance) {
-	ExternalData externalData = external_data;
-	Control control = control_instance;
+	externalData = external_data;
+	control = control_instance;
 	uint8_t mode = external_data.mode();
 }
 
