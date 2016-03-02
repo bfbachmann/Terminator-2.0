@@ -64,18 +64,16 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
         MAX_RPM = 160.0;
         float factor = 10.0;
         
-        
         arc = 4.2 * MAX_RPM / 60000 * 2 * M_PI * R;
         
         /* Determine desired heading, velocity and angular velocity */
         distance = sqrt(destination->x*destination->x + destination->y*destination->y);
         desired_heading = atan2(destination->y, destination->x); 
         error = state->heading - desired_heading;
-        Serial.println(error);
         error = atan2(sin(error), cos(error));
-        // state->w = k_p * error + k_i * error * state->dt;
-        Serial.println(error);
+        // Serial.println(error);
         
+        /* Correct heading */
         while(abs(error) > 0.05) {
             state->l_PWM = (error < 0) ? 255 : 0;
             state->r_PWM = (error > 0) ? 255 : 0;
@@ -87,23 +85,22 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
             // Serial.println(error);
         }
         
+        /* Implement desired wheel speeds */
             state->l_PWM = state->v / MAX_SPEED * 255;
             state->r_PWM = state->v / MAX_SPEED * 255;
             wheelControl(state);
-            Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
-
+            // Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
+        
+        /* Drive straight  */
         while(distance > 2) {
             distance = distance - (factor * MAX_RPM / 60000 * 2 * R * M_PI/2);
             delay(10);
             // Serial.println(distance);
-            Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
+            // Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
         }
         
         if(stopAtDestination)
           stop();
-        
-        // Serial.print(left_w); Serial.print(",");Serial.println(right_w);
-        // Serial.println(distance);
         
 }
 
@@ -128,33 +125,21 @@ void Control::orientRangeFinder(int orientation) {
 */
 void Control::followLine(float *reflectivities, State * state) {
   const int thresh = 100;
-  float factor = 1.4;
-  int left, right = 0;
+  float factor = 2;
 
   // turn left
-  if(reflectivities[0] > thresh) {
-    state->l_PWM = 55;
-    state->r_PWM = 100;
+  if(reflectivities[0] > thresh) { state->l_PWM = 75; state->r_PWM = 100;
   // or turn right
-  } else if(reflectivities[3] > thresh) {
-    state->l_PWM = 100;
-    state->r_PWM = 55;
-    // hard turn, depending on previous situation
+  } else if(reflectivities[3] > thresh) { state->l_PWM = 100; state->r_PWM = 75;
+  // or use state to remember in which direction the lost line is
   } else if(reflectivities[0] < thresh && reflectivities[1] < thresh && reflectivities[2] < thresh && reflectivities[3] < thresh) {
     if (state->r_PWM > state->l_PWM) { state->l_PWM = 30; }
     else { state->r_PWM = 30; }
-    // or drive straight
-  } else {
-     left = 100;
-     right = 100;
-  }
-
-  // Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');
-  // Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
-
-  digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
-  analogWrite(E1, factor*state->l_PWM); analogWrite(E2, factor*state->r_PWM);
-  Serial.print(factor*state->l_PWM);   Serial.println(factor*state->r_PWM); 
+  // or else drive straight
+  } else { state->r_PWM = 100; state->l_PWM = 100; }
+    
+  wheelControl(state);
+//  Serial.print(factor*state->l_PWM);   Serial.println(factor*state->r_PWM); 
 }
 
 void Control::stop() {
