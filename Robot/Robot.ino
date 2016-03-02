@@ -67,6 +67,8 @@ void setup() {
 	state.r_PWM = 0;
 	destination.x = 10;
 	destination.y = 100;
+	
+	control.stop();
 }
 
 void loop() {

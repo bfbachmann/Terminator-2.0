@@ -1,4 +1,5 @@
 #include "Robot.h"
+#define MAX_SPEED 61
 
 /*
  * Constructor for the AI class
@@ -29,36 +30,44 @@ void AI::decide(State *state) {
 
 //if we are in line we we should just call control to follow line
   if (_currentMode == FollowLine) {
-     _control->followLine(_externalData->reflectivities(), state);
+		float* reflectivities = _externalData->reflectivities();
+     _control->followLine(reflectivities, state);
+		 free(reflectivities);
   }
 
 //if we are in free drive mode we need to look for nearby obstancles
 //and slow down or stop depending on how close they are
   else if (_currentMode == FreeDrive) {
 		_control->orientRangeFinder(90);
-    uint8_t straightAheadDistance = _externalData->distance(0);
+    float straightAheadDistance = _externalData->distance(0, false, (0.5 * state->v));
+		Serial.print("Straight ahead distance: ");
+		Serial.println(straightAheadDistance);
     Vector shortTermGoal;
 
-    if (straightAheadDistance < 5 || state->v <= 0) {
+    if (straightAheadDistance < 10) {
       _control->stop();
-      float newDirectionAngle = sweep();
       shortTermGoal.y = 0.0;
-			if (cos(newDirectionAngle) > 0) {
+			if (sweep() == Right) {
+				Serial.println("Turning right to avoid object");
 				shortTermGoal.x = 1.0;
 			} else {
+				Serial.println("Turning left to avoid object");
 				shortTermGoal.x = -1.0;
 			}
     }
-    else if (straightAheadDistance < 50) {
-			float aggressiveness = (50.0 - straightAheadDistance) / 45.0;
-      control.slowDown(state, aggressiveness);
+    else if (straightAheadDistance < 60) {
+			Serial.println("Slowing");
+      control.slowDown(state);
 			return;
     }
     else {
-			// TODO: move forward at max. possible velocity
+			Serial.println("Careening");
+			shortTermGoal.x = 0;
+			shortTermGoal.y = 10.0;
+			state->v = MAX_SPEED;
     }
 		
-		control.go(state, &shortTermGoal, true);
+		control.go(state, &shortTermGoal, false);
   }
 }
 
@@ -67,7 +76,7 @@ void AI::decide(State *state) {
  * corresponding to the furthest distance read (0 degrees being 
  * left of forward relative to heading of robot, 180 being right).
  */
-float AI::sweep() {
+Direction AI::sweep() {
   _control->orientRangeFinder(0);
 	float leftDistance = _externalData->distance(0, true);
 	
@@ -75,9 +84,9 @@ float AI::sweep() {
 	float rightDistance = _externalData->distance(0, true);
 	
 	if (leftDistance > rightDistance) {
-		return PI;
+		return Left;
 	} else {
-		return 0;
+		return Right;
 	}
 }
 

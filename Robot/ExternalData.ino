@@ -89,16 +89,24 @@ float ExternalData::temperature(bool fresh) {
     return _lastTemperature;
 }
 
-float ExternalData::distance(int sensor, bool fresh) {
+float ExternalData::distance(int sensor, bool fresh, int maxChange) {
     if (!fresh) {
         if (_distancesCached[sensor]) {
             return _lastDistances[sensor];
         }
     }
     
-    _lastDistances[sensor] = _readDistance(sensor, temperature());
-    _distancesCached[sensor] = true;
-    
+    float newDistance = _readDistance(sensor, temperature());
+		
+		if (_distancesCached[sensor]) {
+			if (abs(newDistance - _lastDistances[sensor]) <= maxChange) {
+				_lastDistances[sensor] = newDistance;
+			}
+		} else {
+			_lastDistances[sensor] = newDistance;
+			_distancesCached[sensor] = true;
+		}
+		    
     return _lastDistances[sensor];
 }
 
