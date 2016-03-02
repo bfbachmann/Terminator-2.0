@@ -192,7 +192,7 @@ public:
 	*                          threshold of the requested destination, the go
 	*                          function will return a boolean true.
 	*/
-	bool go(State *state, Vector *destination, bool stopAtDestination);
+	void go(State *state, Vector *destination, bool stopAtDestination);
     
 	/*
 	* void stop()
@@ -268,40 +268,7 @@ private:
 	*						  second, to be applied to the right wheel. Similar
 	*						  conditions to the left_w parameter.
 	*/
-	void wheelControl(State * state, float left_w, float right_w);
-
-	/*	void calculateOdometry(State * state, float left_w, float right_w)
-	*
-	*	Calculates distance travelled in an individual time step and updates the 
-	*	state variables to match. Should be called following each time step so that
-	*	the state variables in the x-y plane and the heading remain up to date.
-	*	
-	*	Parameters: 
-	*	State * state:		A pointer to the state structure.
-	*	float left_w:		(Read "left omega"). The angular velocity of the left 
-	*						during the time step.
-	*	float right_w:		(Read "right omega") The angular velocity of the right
-	*						wheel during the time step.
-	*/
-	void calculateOdometry(State * state, float left_w, float right_w);
-   
-	/*	float wheelVelocity(float w, float v, int wheel)	
-	*
-	*	Computes left or right wheel angular velocity given craft desired velocity
-	*  	and angular velocity. Documentation on these formulae is availabile in the
-	*	accompanying report. This abstraction allows us to use a unicycle dynamical
-	*	model instead of a differential drive when making incremental state changes.
-	*	
-	*	Parameters:		
-	*	float w:		("omega") A desired angular velocity of the robot, for one 
-	*					time step.
-	*	float v:		A desired velocity of the robot, for one time step.
-	*		
-	*	Returns:		A wheel velocity in float format for the wheelControl function
-	*					to apply to the wheels, and for the calculateOdometry function
-	*					to use in calculating state changes during a time step.
-	*/	
-	float wheelVelocity(float w, float v, int wheel);
+	void wheelControl(State * state);
  
 public:
  /*	void followLine(float *reflectivities)	
