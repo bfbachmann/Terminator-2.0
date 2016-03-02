@@ -14,7 +14,7 @@ AI::AI(ExternalData *externalData, Control *control) {
 
 
 /*
- * Destructor for the AI class
+ * Deconstructor for the AI class
  */
 AI::~AI() {
 	
@@ -31,7 +31,7 @@ void AI::decide(State *state) {
 
 //if we are in line we we should just call control to follow line
   if (mode == LINE_MODE) {
-     _control->followLine(externalData.reflectivity(true), state);
+     _control->followLine(_externalData->reflectivity(true), state);
   }
 
 //if we are in free drive mode we need to look for nearby obstancles
@@ -41,29 +41,26 @@ void AI::decide(State *state) {
     Vector shortTermGoal;
 
     if (straightAheadDistance < 5 || state->v <= 0) {
-      control.stop();
+      _control->stop();
       float newDirectionAngle = sweep();
-      shortTermGoal.y = 0;
-      if (cos(newDirectionAngle) >= 0)) {
-        shortTermGoal.x = 1;
-      }
-      else {
-        shortTermGoal.x = -1;
-      }
-      control.go(state, &shortTermGoal, false);
-      return;
+      shortTermGoal.y = 0.0;
+			if (cos(newDirectionAngle) > 0) {
+				shortTermGoal.x = 1.0;
+			} else {
+				shortTermGoal.x = -1.0;
+			}
     }
     else if (straightAheadDistance < 50) {
-      control.slowDown(state);
-      return;
+			float aggressiveness = (50.0 - straightAheadDistance) / 50.0;
+      control.slowDown(state, aggressiveness);
+			return;
     }
 
     else {
-      shortTermGoal.x = 0;
-      shortTermGoal.y = 1;
+
     }
-    
-    control.go(state, &shortTermGoal, false);
+		
+		control.go(state, &shortTermGoal, true);
   }
 }
 
