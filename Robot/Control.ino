@@ -20,8 +20,8 @@ By Chad Lagore
 #define L 16
 
 // PID controller tuning.
-#define k_p 10
-#define k_i 0
+#define k_p 1.5
+#define k_i 1
 #define k_d 0
 
 // Max speed in cm/s. 
@@ -73,6 +73,7 @@ bool Control::go(State * state, Vector * destination, bool stopAtDestination) {
         error = desired_heading - state->heading;
         error = atan2(sin(error), cos(error));
         state->w = k_p * error + k_i * error * state->dt;
+        Serial.println(error);
         
         /* Calculate wheel velocities from craft velocity */
         left_w = wheelVelocity(state->w,state->v,0);
@@ -82,7 +83,7 @@ bool Control::go(State * state, Vector * destination, bool stopAtDestination) {
         /* Implement wheel velocities */
         wheelControl(state, left_w, right_w);
         // Serial.print(state->x); Serial.print(",");Serial.println(state->y);
-        Serial.println(distance);
+        // Serial.println(distance);
       
         /* Update state variables */
         calculateOdometry(state, left_w, right_w);
@@ -177,4 +178,9 @@ void Control::followLine(float *reflectivities, State * state) {
   digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
   analogWrite(E1, factor*state->l_PWM); analogWrite(E2, factor*state->r_PWM);
   Serial.print(factor*state->l_PWM);   Serial.println(factor*state->r_PWM); 
+}
+
+void Control::stop() {
+      digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
+      analogWrite(E1, 0); analogWrite(E2, 0);
 }

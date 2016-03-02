@@ -74,27 +74,24 @@ void setup() {
 }
 
 void loop() {
-  //long start = 0;
+  long start = 0;
   float *reflectivities = externalData.reflectivity(true);
-  //bool atDestination = false;
+  bool atDestination = false;
   /*
   Serial.print(s1);   Serial.print(",");
   Serial.print(s2);Serial.print(",");
   Serial.println(s3);
   */
-  control.followLine(reflectivities, &state);
-  free(reflectivities);
-  /*while(!atDestination) {
+  // control.followLine(reflectivities, &state);
+  // free(reflectivities);
+  while(!atDestination) {
     start = millis();
     atDestination = control.go(&state, &destination, true);
     state.dt = millis() - start;
     // Serial.println(state.dt);
     // Serial.print(state.x); Serial.print(","); Serial.println(state.y);
   }
+  control.stop();
 
-<<<<<<< HEAD
   delay(10000);
-  
-=======
-  delay(10000);*/
 }
