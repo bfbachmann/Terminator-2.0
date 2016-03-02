@@ -47,7 +47,7 @@ State state;
 Vector destination;
 
 void setup() {
-  Serial.begin(9600);
+   Serial.begin(9600);
    externalData.initializePins();
    control.attachRangeFinder();
    control.initializePins();
@@ -70,8 +70,8 @@ void setup() {
 }
 
 void loop() {
-        control.go(&state, &destination, true);
-	Serial.println(externalData.distance(0,true));
-	
-	delay(10000);
+      float *reflectivities = externalData.reflectivity(true);
+      control.followLine(reflectivities, &state);
+      free(reflectivities);
+	// Serial.println(externalData.distance(0,true));
 }
