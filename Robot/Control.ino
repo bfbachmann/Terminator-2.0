@@ -190,6 +190,6 @@ void Control::stop() {
 }
 
 void Control::slowDown(State *state) {
-  //decrement current wheel speed by some about and write this new value back to the wheels
+
 }
 
