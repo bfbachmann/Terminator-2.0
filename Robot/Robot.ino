@@ -7,19 +7,16 @@
 // ultrasonic sensors
 #define NUMBER_OF_ULTRASONIC_SENSORS 2
 
-#define DIST_SENSOR_1_ECHO_PIN 4
-#define DIST_SENSOR_2_ECHO_PIN 7
-#define DIST_SENSOR_3_ECHO_PIN 10
-
+#define DIST_SENSOR_1_ECHO_PIN 2
+#define DIST_SENSOR_2_ECHO_PIN 8
 #define DIST_SENSOR_1_TRIGGER_PIN 3
-#define DIST_SENSOR_2_TRIGGER_PIN 8
-#define DIST_SENSOR_3_TRIGGER_PIN 9
+#define DIST_SENSOR_2_TRIGGER_PIN 9
 
 // servo to orient the rotatable distance sensor
 #define SERVO_PIN 9
 
 // mode swtich
-#define MODE_SWITCH_PIN 3
+#define MODE_SWITCH_PIN 13
 
 // reflectivity sensors
 #define NUMBER_OF_REFLECTIVITY_SENSORS 4
@@ -30,10 +27,9 @@
 #define REFLECTIVITY_SENSOR_4_PIN A3
 
 // variables required to initialize ExternalData
-uint8_t ultrasonicSensorPins[3][2] = {
-	{DIST_SENSOR_1_TRIGGER_PIN, DIST_SENSOR_1_ECHO_PIN},
-	{DIST_SENSOR_1_TRIGGER_PIN, DIST_SENSOR_1_ECHO_PIN},
-	{DIST_SENSOR_1_TRIGGER_PIN, DIST_SENSOR_1_ECHO_PIN}
+uint8_t ultrasonicSensorPins[4] = {
+	DIST_SENSOR_1_TRIGGER_PIN, DIST_SENSOR_1_ECHO_PIN,
+	DIST_SENSOR_2_TRIGGER_PIN, DIST_SENSOR_2_ECHO_PIN
 };
 
 uint8_t reflectivitySensors[4] = {
@@ -43,9 +39,9 @@ uint8_t reflectivitySensors[4] = {
 	REFLECTIVITY_SENSOR_4_PIN
 };
 
-ExternalData externalData(TEMPERATURE_SENSOR_PIN, NUMBER_OF_ULTRASONIC_SENSORS, (uint8_t**)ultrasonicSensorPins, NUMBER_OF_REFLECTIVITY_SENSORS, (uint8_t*)reflectivitySensors, MODE_SWITCH_PIN);
+ExternalData externalData(TEMPERATURE_SENSOR_PIN, NUMBER_OF_ULTRASONIC_SENSORS, ultrasonicSensorPins, NUMBER_OF_REFLECTIVITY_SENSORS, reflectivitySensors, MODE_SWITCH_PIN);
 Control control((uint8_t)SERVO_PIN);
-AI ai(externalData, control);
+AI ai(&externalData, &control);
 
 State state;
 Vector destination;
@@ -94,6 +90,31 @@ void loop() {
 //  control.stop();
 //
 //  delay(10000);
+//
+//  Serial.println(externalData.readDistance(2, externalData.read_temperature()));
+//  long start = 0;
+//  float *reflectivities = externalData.reflectivity(true);
+//  bool atDestination = false;
+  /*
+  Serial.print(s1);   Serial.print(",");
+  Serial.print(s2);Serial.print(",");
+  Serial.println(s3);
+  */
+  // control.followLine(reflectivities);
+  // free(reflectivities);
+  /*while(!atDestination) {
+    start = millis();
+    atDestination = control.go(&state, &destination, true);
+    state.dt = millis() - start;
+    // Serial.println(state.dt);
+    // Serial.print(state.x); Serial.print(","); Serial.println(state.y);
+  }
+  control.stop();
 
-  Serial.println(externalData.readDistance(2, externalData.read_temperature()));
+  delay(10000);
+  delay(10000);*/
+	
+	Serial.println(externalData.distance(0,true));
+	
+	delay(100);
 }

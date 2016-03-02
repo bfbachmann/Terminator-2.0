@@ -6,10 +6,10 @@
 /*
  * Constructor for the AI class
  */
-AI::AI(ExternalData external_data, Control control_instance) {
-	externalData = external_data;
-	control = control_instance;
-	uint8_t mode = external_data.mode();
+AI::AI(ExternalData *externalData, Control *control) {
+	_externalData = externalData;
+	_control = control;
+	mode = _externalData->mode();
 }
 
 
@@ -26,28 +26,57 @@ AI::~AI() {
  * Gets necessary data from externalData and uses Control
  * to take action.
  */
-void AI::decide() {
-	
+void AI::decide(State *state) {
+  mode = _externalData->mode();
+
+  if (mode == LINE_MODE) {
+     _control->followLine(externalData.reflectivity(true), state);
+  }
+
+  else if (mode == FREE_DRIVE_MODE) {
+    uint8_t straightAheadDistance = externalData.distance(1, true);
+    float newDirectionAngle;
+    Vector *shortTermGoal;
+
+    if (straightAheadDistance < 10) {
+      control.stop();
+      newDirectionAngle = sweep();
+      shortTermGoal->x = cos(newDirectionAngle);
+      shortTermGoal->y = sin(newDirectionAngle);
+    }
+    else if (straightAheadDistance < 50) {
+      control.slowDown(state);
+    }
+    else {
+      control.go(state, shortTermGoal, true);
+    }
+
+  }
+      
 }
 
 /*
- * Pan the servo motor from 0 to 180 degrees and return an array 
- * of the distances read from the distance sensor attatched to
- * the servo. 
- * NOTE: the caller of this function is reponisble for free()ing 
- * array of distance values one they are no longer in use.
+ * Pan the servo motor from 0 to 180 degrees and return the angle (in radians)
+ * corresponding to the furthest distance read (0 degrees being 
+ * left of forward relative to heading of robot, 180 being right).
  */
-float *AI::sweep() {
+float AI::sweep() {
   
-  float *distances = (float *) malloc(sizeof(float)*18);
-  int i;
+    uint8_t bestDistanceAngle = 90;
+    float bestDistance = 0;
+    float currentDistance;
+    int i;
   
-  for (i = 0; i <= 10; i++) { 
-    control.orientRangeFinder(i*18);
-    distances[i] = externalData.distance(2, true);
-    delay(10);
-  }
+    for (i = 0; i <= 10; i++) { 
+      _control->orientRangeFinder(i*18);
+      currentDistance = _externalData->distance(0, true);
+      if (currentDistance > bestDistance) {
+        bestDistance = currentDistance;
+        bestDistanceAngle = i*18;
+      }
+      delay(50);
+    }
 
-  return distances;
+  return (180-bestDistanceAngle)*(PI/180);
 }
 

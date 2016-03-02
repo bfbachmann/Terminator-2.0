@@ -176,8 +176,9 @@ void Control::followLine(float *reflectivities, State * state) {
      right = 100;
   }
 
-  Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
-    
+  // Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');
+  // Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
+
   digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
   analogWrite(E1, factor*state->l_PWM); analogWrite(E2, factor*state->r_PWM);
   Serial.print(factor*state->l_PWM);   Serial.println(factor*state->r_PWM); 
@@ -187,3 +188,8 @@ void Control::stop() {
       digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
       analogWrite(E1, 0); analogWrite(E2, 0);
 }
+
+void Control::slowDown(State *state) {
+  //decrement current wheel speed by some about and write this new value back to the wheels
+}
+

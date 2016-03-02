@@ -45,9 +45,9 @@ typedef struct {
 	float heading;
 	float v;
 	float w;
-        float dt;
-        int  l_PWM;
-        int  r_PWM;
+  float dt;
+  uint8_t  l_PWM;
+  uint8_t  r_PWM;
 } State;
 
 
@@ -65,7 +65,7 @@ public:
 	* Control control:             A Control object with which the AI will
 	*                              execute decisions that are made.
 	*/
-	AI(ExternalData external_data, Control control);
+	AI(ExternalData *externalData, Control *control);
 	~AI();
     
 	/*
@@ -75,19 +75,22 @@ public:
 	* This function will gather the necessary data, and then
 	* execute the appropriate action.
 	*/
-	void decide();
+	void decide(State *state);
 
 private:
 
-  /*
- * Pan the servo motor from 0 to 180 degrees and return an array 
- * of the distances read from the distance sensor attatched to
- * the servo. 
- * NOTE: the caller of this function is reponisble for free()ing 
- * array of distance values one they are no longer in use.
+/*
+ * Pan the servo motor from 0 to 180 degrees and return the angle (int radians)
+ * corresponding to the furthest distance read (0 degrees being 
+ * left of forward relative to heading of robot, 180 being right).
  */
-  float* sweep();
+  float sweep();
 
+#pragma mark Private instance variables
+	Control *_control;
+	ExternalData *_externalData;
+	
+	uint8_t mode;
 };
 
 /*
@@ -216,6 +219,11 @@ public:
 	void orientRangeFinder(int orientation);
 
 /*
+ * Decrease the speed the robot is moving at by a small amount.
+ */
+  void slowDown(State *state);
+
+/*
  * Attached the servo motor to its designated input pin.
  */
   void attachRangeFinder();
@@ -316,17 +324,17 @@ public:
 	*                                  available to the robot.
 	* uint8_t** ultrasonicSensors:     pins to which each ultrasonic sensor is connected.
 	*                                  The array should be formatted as follows, indexed
-	*                                  as ultrasonicSensors[index][index2]:
+	*                                  as ultrasonicSensors[index]:
 	* 
-	*          index   index2  value
-	*          0       0       pin to which the trigger pin of the 0th ultrasonic
-	*                          sensor is connected.
-	*          0       1       pin to which the echo pin of the 0th ultrasonic sensor
-	*                          is connected.
-	*          1       0       pin to which the trigger pin of the 1st ultrasonic
-	*                          sensor is connected.
-	*          1       1       pin to which the echo pin of the 0th ultrasonic sensor
-	*                          is connected.
+	*          index   value
+	*          0       pin to which the trigger pin of the 0th ultrasonic
+	*                  sensor is connected.
+	*          1       pin to which the echo pin of the 0th ultrasonic sensor
+	*                  is connected.
+	*          2       pin to which the trigger pin of the 1st ultrasonic
+	*                  sensor is connected.
+	*          3       pin to which the echo pin of the 1st ultrasonic sensor
+	*                  is connected.
 	*
 	*                                   And so on.
     * int numberOfReflectivitySensors:  The number of reflectivity sensors that are
@@ -334,7 +342,7 @@ public:
     * uint8_t* reflectivitySensors:     Pins to which the reflectivity sensors are
     *                                   connected.
 	*/
-	ExternalData(int temperaturePin, int numberOfUltrasonicSensors, uint8_t** ultrasonicSensors, int numberOfReflectivitySensors, uint8_t* reflectivitySensors, int mode_pin);
+	ExternalData(int temperaturePin, int numberOfUltrasonicSensors, uint8_t ultrasonicSensors[], int numberOfReflectivitySensors, uint8_t reflectivitySensors[], int mode_pin);
 	~ExternalData();
   
 	/*
@@ -429,24 +437,26 @@ public:
  
 private:
 #pragma mark Pin variables
-	int temperaturePin;
-  int mode_pin;
-	int numberOfUltrasonicSensors;
-	uint8_t **ultrasonicSensorPins;
-  int numberOfReflectivitySensors;
-  uint8_t *reflectivitySensorPins;
+	int _temperaturePin;
+  int _modePin;
+	int _numberOfUltrasonicSensors;
+	uint8_t* _ultrasonicSensorPins;
+  int _numberOfReflectivitySensors;
+  uint8_t* _reflectivitySensorPins;
     
 #pragma mark Caching variables
-	float lastTemperature;
-	float *lastDistances;
-	float *lastReflectivities;
+	float _lastTemperature;
+	float *_lastDistances;
+	float *_lastReflectivities;
     
-	bool temperatureCached;
-	bool *distancesCached;
-	bool *reflectivitiesCached;
+	bool _temperatureCached;
+	bool *_distancesCached;
+	bool *_reflectivitiesCached;
     
 #pragma mark Data acquisition functions
-	void pulseOut(uint8_t pin, int microseconds);
+	float _readTemperature();
+	void _pulseOut(uint8_t pin, int microseconds);
+	float _readDistance(int sensor, float temperature);
 };
 
 #endif /* robot_h */
