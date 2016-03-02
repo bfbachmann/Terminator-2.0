@@ -152,6 +152,15 @@ void Control::stop() {
 }
 
 void Control::slowDown(State *state, float aggressiveness) {
+<<<<<<< HEAD
+=======
+  float v = state->v;
+	state->v = v * aggressiveness;
+  Vector destination;
+  destination.x = 0;
+  destination.y = 1;
+  go(state, &destination, false);
+>>>>>>> ffaebd21b8e33492460212685520fedccedec6df
   //decrement current wheel speed by some about and write this new value back to the wheels
 }
 
