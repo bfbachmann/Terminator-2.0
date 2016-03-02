@@ -73,7 +73,7 @@ bool Control::go(State * state, Vector * destination, bool stopAtDestination) {
         error = desired_heading - state->heading;
         error = atan2(sin(error), cos(error));
         state->w = k_p * error + k_i * error * state->dt;
-        Serial.println(error);
+        // Serial.println(error);
         
         /* Calculate wheel velocities from craft velocity */
         left_w = wheelVelocity(state->w,state->v,0);
@@ -82,7 +82,7 @@ bool Control::go(State * state, Vector * destination, bool stopAtDestination) {
         
         /* Implement wheel velocities */
         wheelControl(state, left_w, right_w);
-        // Serial.print(state->x); Serial.print(",");Serial.println(state->y);
+        // Serial.print(left_w); Serial.print(",");Serial.println(right_w);
         // Serial.println(distance);
       
         /* Update state variables */
@@ -126,7 +126,8 @@ void Control::wheelControl(State * state, float left_w, float right_w) {
 * 
 */
 void Control::calculateOdometry(State * state, float left_w, float right_w) {
-	float factor = 2.3;
+	float factor = 2;
+        // Serial.println(factor);
         float MAX_RPM = 160 ;    // Maximum wheel RPM in ms.
         float circumference = 2 * M_PI * R;
         float r_distance = circumference * ((float)state->r_PWM / 255.0) * MAX_RPM * state->dt / 60000 / factor;
@@ -139,6 +140,7 @@ void Control::calculateOdometry(State * state, float left_w, float right_w) {
 	state->x = state->x + distance * cos(state->heading);
 	state->y = state->y + distance * sin(state->heading);
 	state->heading = state->heading + (r_distance-l_distance)/L;
+        Serial.println(state->heading);
 }
 
 /*
@@ -164,10 +166,11 @@ void Control::followLine(float *reflectivities, State * state) {
   } else if(reflectivities[3] > thresh) {
     state->l_PWM = 100;
     state->r_PWM = 55;
-  // or drive straight
+    // hard turn, depending on previous situation
   } else if(reflectivities[0] < thresh && reflectivities[1] < thresh && reflectivities[2] < thresh && reflectivities[3] < thresh) {
     if (state->r_PWM > state->l_PWM) { state->l_PWM = 30; }
     else { state->r_PWM = 30; }
+    // or drive straight
   } else {
      left = 100;
      right = 100;

@@ -63,7 +63,7 @@ void setup() {
    state.heading = M_PI/2;
    state.l_PWM = 0;
    state.r_PWM = 0;
-   destination.x = 0;
+   destination.x = 10;
    destination.y = 100;
    pinMode(A0, INPUT);
    pinMode(A1, INPUT);
