@@ -14,7 +14,7 @@ AI::AI(ExternalData *externalData, Control *control) {
 
 
 /*
- * Destructor for the AI class
+ * Deconstructor for the AI class
  */
 AI::~AI() {
 	
@@ -30,27 +30,33 @@ void AI::decide(State *state) {
   mode = _externalData->mode();
 
   if (mode == LINE_MODE) {
-     _control->followLine(externalData.reflectivity(true), state);
+     _control->followLine(_externalData->reflectivity(true), state);
   }
 
   else if (mode == FREE_DRIVE_MODE) {
-    uint8_t straightAheadDistance = externalData.distance(1, true);
-    float newDirectionAngle;
-    Vector *shortTermGoal;
+    uint8_t straightAheadDistance = _externalData->distance(1, true);
+    Vector shortTermGoal;
 
-    if (straightAheadDistance < 10) {
-      control.stop();
-      newDirectionAngle = sweep();
-      shortTermGoal->x = cos(newDirectionAngle);
-      shortTermGoal->y = sin(newDirectionAngle);
+    if (straightAheadDistance < 5 || state->v <= 0) {
+      _control->stop();
+      float newDirectionAngle = sweep();
+      shortTermGoal.y = 0.0;
+			if (cos(newDirectionAngle) > 0) {
+				shortTermGoal.x = 1.0;
+			} else {
+				shortTermGoal.x = -1.0;
+			}
     }
     else if (straightAheadDistance < 50) {
-      control.slowDown(state);
+			float aggressiveness = (50.0 - straightAheadDistance) / 50.0;
+      control.slowDown(state, aggressiveness);
+			return;
     }
     else {
-      control.go(state, shortTermGoal, true);
+			
     }
-
+		
+		control.go(state, &shortTermGoal, true);
   }
       
 }

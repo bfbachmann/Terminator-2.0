@@ -221,7 +221,7 @@ public:
 /*
  * Decrease the speed the robot is moving at by a small amount.
  */
-  void slowDown(State *state);
+  void slowDown(State *state, float aggressiveness);
 
 /*
  * Attached the servo motor to its designated input pin.

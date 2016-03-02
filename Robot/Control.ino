@@ -189,7 +189,8 @@ void Control::stop() {
       analogWrite(E1, 0); analogWrite(E2, 0);
 }
 
-void Control::slowDown(State *state) {
+void Control::slowDown(State *state, float aggressiveness) {
+	v = v * aggressiveness;
   //decrement current wheel speed by some about and write this new value back to the wheels
 }
 
