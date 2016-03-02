@@ -289,7 +289,7 @@ public:
   *         point to a location with at least 'numberOfReflectivitySensors'
   *         readings.
 	*/	
-  void followLine(float *reflectivities);
+  void followLine(float *reflectivities, State *state);
     
 #pragma mark Pin instance variables
     uint8_t rangeFinderPin;

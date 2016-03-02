@@ -52,29 +52,31 @@ Vector destination;
 
 void setup() {
   Serial.begin(9600);
-  externalData.initializePins();
-  control.attachRangeFinder();
-  control.initializePins();
-	state.x = 0;
-	state.y = 0;
-	state.v = 0;
-	state.w = 0;
-	state.dt = 1;
-	state.heading = M_PI/2;
-	destination.x = 0;
-	destination.y = 100;
-	pinMode(A0, INPUT);
-	pinMode(A1, INPUT);
-	pinMode(A2, INPUT);
-	pinMode(A3, INPUT);
-	delay(1000);
-	Serial.println("Done setting up");
+   externalData.initializePins();
+   control.attachRangeFinder();
+   control.initializePins();
+   state.x = 0;
+   state.y = 0;
+   state.v = 0;
+   state.w = 0;
+   state.dt = 1;
+   state.heading = M_PI/2;
+   state.l_PWM = 0;
+   state.r_PWM = 0;
+   destination.x = 10;
+   destination.y = 100;
+   pinMode(A0, INPUT);
+   pinMode(A1, INPUT);
+   pinMode(A2, INPUT);
+   pinMode(A3, INPUT);
+   delay(1000);
+   Serial.println("Done setting up");
 }
 
 void loop() {
-  //long start = 0;
-  // float *reflectivities = externalData.reflectivity(true);
-  //bool atDestination = false;
+  long start = 0;
+  float *reflectivities = externalData.reflectivity(true);
+  bool atDestination = false;
   /*
   Serial.print(s1);   Serial.print(",");
   Serial.print(s2);Serial.print(",");
@@ -89,6 +91,7 @@ void loop() {
     // Serial.println(state.dt);
     // Serial.print(state.x); Serial.print(","); Serial.println(state.y);
   }
+  control.stop();
 
   delay(10000);
   delay(10000);*/
