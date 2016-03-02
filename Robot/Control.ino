@@ -180,8 +180,8 @@ void Control::followLine(float *reflectivities) {
      right = 100;
   }
 
-  Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');
-  Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
+  // Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');
+  // Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
 
   
   digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);

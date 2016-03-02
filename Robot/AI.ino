@@ -6,10 +6,10 @@
 /*
  * Constructor for the AI class
  */
-AI::AI(ExternalData external_data, Control control_instance) {
-	externalData = external_data;
-	control = control_instance;
-	uint8_t mode = external_data.mode();
+AI::AI(ExternalData *externalData, Control *control) {
+	_externalData = externalData;
+	_control = control;
+	mode = _externalData->mode();
 }
 
 
@@ -43,8 +43,8 @@ float *AI::sweep() {
   int i;
   
   for (i = 0; i <= 10; i++) { 
-    control.orientRangeFinder(i*18);
-    distances[i] = externalData.distance(2, true);
+    _control->orientRangeFinder(i*18);
+    distances[i] = _externalData->distance(2, true);
     delay(10);
   }
 
