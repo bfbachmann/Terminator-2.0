@@ -1,15 +1,11 @@
 #include "Robot.h"
 
-#define LINE_MODE 0
-#define FREE_DRIVE_MODE 1
-
 /*
  * Constructor for the AI class
  */
 AI::AI(ExternalData *externalData, Control *control) {
 	_externalData = externalData;
 	_control = control;
-	mode = _externalData->mode();
 }
 
 
@@ -27,17 +23,20 @@ AI::~AI() {
  * to take action.
  */
 void AI::decide(State *state) {
-  mode = _externalData->mode();
+	_externalData->clearCache();
+	
+	updateMode();
 
 //if we are in line we we should just call control to follow line
-  if (mode == LINE_MODE) {
-     _control->followLine(_externalData->reflectivity(true), state);
+  if (_currentMode == FollowLine) {
+     _control->followLine(_externalData->reflectivities(), state);
   }
 
 //if we are in free drive mode we need to look for nearby obstancles
-//and slow dont or stop depending on how close they are
-  else if (mode == FREE_DRIVE_MODE) {
-    uint8_t straightAheadDistance = _externalData->distance(1, true);
+//and slow down or stop depending on how close they are
+  else if (_currentMode == FreeDrive) {
+		_control->orientRangeFinder(90);
+    uint8_t straightAheadDistance = _externalData->distance(0);
     Vector shortTermGoal;
 
     if (straightAheadDistance < 5 || state->v <= 0) {
@@ -51,13 +50,12 @@ void AI::decide(State *state) {
 			}
     }
     else if (straightAheadDistance < 50) {
-			float aggressiveness = (50.0 - straightAheadDistance) / 50.0;
+			float aggressiveness = (50.0 - straightAheadDistance) / 45.0;
       control.slowDown(state, aggressiveness);
 			return;
     }
-
     else {
-
+			// TODO: move forward at max. possible velocity
     }
 		
 		control.go(state, &shortTermGoal, true);
@@ -70,22 +68,25 @@ void AI::decide(State *state) {
  * left of forward relative to heading of robot, 180 being right).
  */
 float AI::sweep() {
-  
-    uint8_t bestDistanceAngle = 90;
-    float bestDistance = 0;
-    float currentDistance;
-    int i;
-  
-    for (i = 0; i <= 10; i++) { 
-      _control->orientRangeFinder(i*18);
-      currentDistance = _externalData->distance(0, true);
-      if (currentDistance > bestDistance) {
-        bestDistance = currentDistance;
-        bestDistanceAngle = i*18;
-      }
-      delay(50);
-    }
-
-  return (180-bestDistanceAngle)*(PI/180);
+  _control->orientRangeFinder(0);
+	float leftDistance = _externalData->distance(0, true);
+	
+	_control->orientRangeFinder(180);
+	float rightDistance = _externalData->distance(0, true);
+	
+	if (leftDistance > rightDistance) {
+		return PI;
+	} else {
+		return 0;
+	}
 }
 
+void AI::updateMode() {
+  Mode mode = _externalData->mode();
+	
+	if (mode != _currentMode) {
+		// we have changed modes
+	}
+	
+	_currentMode = mode;
+}

@@ -199,3 +199,9 @@ void Control::slowDown(State *state, float aggressiveness) {
   //decrement current wheel speed by some about and write this new value back to the wheels
 }
 
+void Control::sendByteToSlave(char byte) {
+	Wire.beginTransmission(WIRE_DEVICE);
+	Wire.write(byte);
+	Wire.endTransmission();
+}
+

@@ -1,12 +1,14 @@
 // minimum and maximum distances to be read from the ultrasonic sensors, in cm
 #define DIST_MAX 200
 #define DIST_MIN 0
- 
+
+// how long a temperature value is considered fresh in milliseconds 
+#define TEMPERATURE_CACHE_AGE 2000
+
 #pragma mark Initializers
 
-ExternalData::ExternalData(int temperaturePin, int numberOfUltrasonicSensors, uint8_t ultrasonicSensors[], int numberOfReflectivitySensors, uint8_t reflectivitySensors[], int modePin) {
+ExternalData::ExternalData(int numberOfUltrasonicSensors, uint8_t ultrasonicSensors[], int numberOfReflectivitySensors, uint8_t reflectivitySensors[], int modePin) {
 	// save pins
-	_temperaturePin = temperaturePin;
   _modePin = modePin;
 	
 	_numberOfUltrasonicSensors = numberOfUltrasonicSensors;
@@ -21,6 +23,9 @@ ExternalData::ExternalData(int temperaturePin, int numberOfUltrasonicSensors, ui
 	clearCache();
 	_lastDistances = (float*)malloc(_numberOfUltrasonicSensors * sizeof(float));
 	_lastReflectivities = (float*)malloc(_numberOfReflectivitySensors * sizeof(float));
+	
+	// initialize the temperature to twenty so if we can't ever read from the slave we have a value
+	_lastTemperature = 20.0;
 }
 
 ExternalData::~ExternalData() {
@@ -36,17 +41,21 @@ ExternalData::~ExternalData() {
 void ExternalData::initializePins() {
 	// initialize pins
 	pinMode(_temperaturePin, INPUT);
-  pinMode(_modePin, INPUT);
+  pinMode(_modePin, INPUT_PULLUP);
 
 	int i;
 	for (i = 0; i < _numberOfUltrasonicSensors; i++) {
 		pinMode(_ultrasonicSensorPins[2 * i], OUTPUT);
 		pinMode(_ultrasonicSensorPins[(2 * i) + 1], INPUT);
 	}
+	
+	for (i = 0; i < _numberOfReflectivitySensors; i++) {
+		pinMode(_reflectivitySensorPins[i], INPUT);
+	}
 }
 
 void ExternalData::clearCache() {
-    _temperatureCached = false;
+    _lastTemperatureTimestamp = 0;
     
     int i;
     for (i = 0; i < _numberOfUltrasonicSensors; i++) {
@@ -62,13 +71,20 @@ void ExternalData::clearCache() {
 
 float ExternalData::temperature(bool fresh) {
     if (!fresh) {
-        if (_temperatureCached) {
+			// if our last reading is less than two seconds old, return it
+        if ((_lastTemperatureTimestamp + TEMPERATURE_CACHE_AGE) < millis()) {
             return _lastTemperature;
         }
     }
 
-    _lastTemperature = _readTemperature();
-    _temperatureCached = true;
+		float newTemperature = _readTemperature();
+		
+		if (newTemperature != INFINITY) {
+			Serial.print("Valid temperature recieved: ");
+			Serial.println(newTemperature);
+	    _lastTemperature = newTemperature;
+	    _lastTemperatureTimestamp = millis();
+		}
     
     return _lastTemperature;
 }
@@ -97,30 +113,66 @@ float *ExternalData::distances(bool fresh) {
     return returnValues;
 }
 
-float *ExternalData::reflectivity(bool fresh) {
+float ExternalData::reflectivity(int sensor, bool fresh) {
+  if (!fresh) {
+      if (_reflectivitiesCached[sensor]) {
+          return _lastReflectivities[sensor];
+      }
+  }
+  
+  _lastReflectivities[sensor] = analogRead(_reflectivitySensorPins[sensor]);
+  _reflectivitiesCached[sensor] = true;
+  
+  return _lastReflectivities[sensor];
+}
+
+float *ExternalData::reflectivities(bool fresh) {
   float *returnValues = (float*)malloc(_numberOfReflectivitySensors * sizeof(float));
   // get reading from each refectivity sensor
   for (int i = 0; i < _numberOfReflectivitySensors; i++) {
-    returnValues[i] = analogRead(_reflectivitySensorPins[i]);
+    returnValues[i] = reflectivity(i, fresh);
   }
   return returnValues;
 }
 
-uint8_t ExternalData::mode() {
-  return digitalRead(_modePin);
+Mode ExternalData::mode() {
+	if (digitalRead(_modePin) == HIGH) {
+		return FreeDrive;
+	} else {
+		return FollowLine;
+	}
 }
 
 #pragma mark Private functions
         
 float ExternalData::_readTemperature() {
-	/*read the voltage on the temperature pin*/
-	float voltage = (float)analogRead(_temperaturePin);
+	// request the temperature from the slave
+	Wire.beginTransmission(WIRE_DEVICE);
+	Wire.write('t');
+	Wire.endTransmission();
+	
+	// request one byte from slave
+	Wire.requestFrom(WIRE_DEVICE, 1);
+	
+	char receivedByte;
+	
+	if (Wire.available()) {
+		receivedByte = Wire.read();
+	} else {
+		return INFINITY; // if something goes wrong, return not a number
+	}
+	
+	int voltage = (int)receivedByte;
+	
+	if (voltage < 0 || voltage > 1023) {
+		return INFINITY;
+	}
+
 	/*scale it, taking into account the arduino's return range and the sensor's specs*/
-	return (voltage * 500.0) / 1023.0;
+	return ((float)voltage * 500.0) / 1023.0;
 }
     
 void ExternalData::_pulseOut(uint8_t pin, int microseconds) {
-
 	// set the pin to high
 	digitalWrite(pin, HIGH);
 	// wait for the prescribed time
