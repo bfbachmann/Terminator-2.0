@@ -1,6 +1,14 @@
 // minimum and maximum distances to be read from the ultrasonic sensors, in cm
 #define DIST_MAX 200
 #define DIST_MIN 0
+
+#define DIST_SENSOR_1_ECHO_PIN 4
+#define DIST_SENSOR_2_ECHO_PIN 7
+#define DIST_SENSOR_3_ECHO_PIN 10
+
+#define DIST_SENSOR_1_TRIGGER_PIN 3
+#define DIST_SENSOR_2_TRIGGER_PIN 8
+#define DIST_SENSOR_3_TRIGGER_PIN 9
  
 #pragma mark Initializers
 
@@ -64,7 +72,7 @@ float ExternalData::temperature(bool fresh) {
         }
     }
     
-    lastTemperature = readTemperature();
+    lastTemperature = read_temperature();
     temperatureCached = true;
     
     return lastTemperature;
@@ -77,7 +85,7 @@ float ExternalData::distance(int sensor, bool fresh) {
         }
     }
     
-    lastDistances[sensor] = readDistance(sensor, temperature());
+    lastDistances[sensor] = readDistance(sensor, read_temperature());
     distancesCached[sensor] = true;
     
     return lastDistances[sensor];
@@ -109,10 +117,12 @@ uint8_t ExternalData::mode() {
 
 #pragma mark Private functions
         
-float ExternalData::readTemperature() {
+float ExternalData::read_temperature() {
 	/*read the voltage on the temperature pin*/
 	float voltage = (float)analogRead(temperaturePin);
 	/*scale it, taking into account the arduino's return range and the sensor's specs*/
+ Serial.print("Temperature: ");
+ Serial.println((voltage * 500.0) / 1023.0);
 	return (voltage * 500.0) / 1023.0;
 }
     
@@ -130,6 +140,8 @@ float ExternalData::readDistance(int sensor, float temperature) {
 	pulseOut(ultrasonicSensorPins[sensor][0], 10);
 	// read the response pulse
 	unsigned long pulseWidth = pulseIn(ultrasonicSensorPins[sensor][1], HIGH);
+  Serial.print("Pulse width: ");
+  Serial.println(pulseWidth);
 	// compute the speed of sound
 	float speedOfSound = 20000.0 / (331.5 + (0.6 * temperature));
 	// compute the distance
@@ -138,6 +150,8 @@ float ExternalData::readDistance(int sensor, float temperature) {
 	if (distance > DIST_MAX) {
 		return DIST_MAX;
 	}
+ Serial.print("Distance: ");
+ Serial.println(distance);
 	return distance;
 }
 

@@ -2,16 +2,16 @@
 
 #include "Robot.h"
 
-#define TEMPERATURE_SENSOR_PIN 2
+#define TEMPERATURE_SENSOR_PIN A5
 
 // ultrasonic sensors
-#define NUMBER_OF_ULTRASONIC_SENSORS 3
+#define NUMBER_OF_ULTRASONIC_SENSORS 2
 
-#define DIST_SENSOR_1_ECHO_PIN 12
+#define DIST_SENSOR_1_ECHO_PIN 4
 #define DIST_SENSOR_2_ECHO_PIN 7
 #define DIST_SENSOR_3_ECHO_PIN 10
 
-#define DIST_SENSOR_1_TRIGGER_PIN 11
+#define DIST_SENSOR_1_TRIGGER_PIN 3
 #define DIST_SENSOR_2_TRIGGER_PIN 8
 #define DIST_SENSOR_3_TRIGGER_PIN 9
 
@@ -74,24 +74,26 @@ void setup() {
 }
 
 void loop() {
-  long start = 0;
-  float *reflectivities = externalData.reflectivity(true);
-  bool atDestination = false;
-  /*
-  Serial.print(s1);   Serial.print(",");
-  Serial.print(s2);Serial.print(",");
-  Serial.println(s3);
-  */
-  // control.followLine(reflectivities, &state);
-  // free(reflectivities);
-  while(!atDestination) {
-    start = millis();
-    atDestination = control.go(&state, &destination, true);
-    state.dt = millis() - start;
-    // Serial.println(state.dt);
-    // Serial.print(state.x); Serial.print(","); Serial.println(state.y);
-  }
-  control.stop();
+//  long start = 0;
+//  float *reflectivities = externalData.reflectivity(true);
+//  bool atDestination = false;
+//  /*
+//  Serial.print(s1);   Serial.print(",");
+//  Serial.print(s2);Serial.print(",");
+//  Serial.println(s3);
+//  */
+//  // control.followLine(reflectivities, &state);
+//  // free(reflectivities);
+//  while(!atDestination) {
+//    start = millis();
+//    atDestination = control.go(&state, &destination, true);
+//    state.dt = millis() - start;
+//    // Serial.println(state.dt);
+//    // Serial.print(state.x); Serial.print(","); Serial.println(state.y);
+//  }
+//  control.stop();
+//
+//  delay(10000);
 
-  delay(10000);
+  Serial.println(externalData.readDistance(2, externalData.read_temperature()));
 }

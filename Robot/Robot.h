@@ -422,6 +422,10 @@ public:
   * pressed curresponding to FREE_DRIVE_MODE for driving around freely.
   */
   uint8_t mode();
+
+  float read_temperature();
+  float readDistance(int sensor, float temperature);
+
  
 private:
 #pragma mark Pin variables
@@ -442,9 +446,7 @@ private:
 	bool *reflectivitiesCached;
     
 #pragma mark Data acquisition functions
-	float readTemperature();
 	void pulseOut(uint8_t pin, int microseconds);
-	float readDistance(int sensor, float temperature);
 };
 
 #endif /* robot_h */
