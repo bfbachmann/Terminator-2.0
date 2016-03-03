@@ -19,6 +19,8 @@ By Chad Lagore
 #define R 6.5
 #define L 16
 
+#define SERVO_DELAY_PER_DEGREE 1
+
 #define _USE_MATH_DEFINES
 
 #pragma mark Begin Control implementation
@@ -127,10 +129,13 @@ void Control::adjustHeading(State * state, Vector * destination) {
 */
 void Control::orientRangeFinder(int orientation) {
 	if (_currentRangeFinderOrientation != orientation) {
+#ifdef DEBUG
 		Serial.println("Orienting range finder");
+#endif
 		rangeFinderServo.write(orientation);
+		// give the servo a chance to actually move - 3ms per degree moved
+		delay(SERVO_DELAY_PER_DEGREE * abs(_currentRangeFinderOrientation - orientation));
 		_currentRangeFinderOrientation = orientation;
-		delay(500);
 	}
 }
 /*
