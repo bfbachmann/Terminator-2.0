@@ -1,5 +1,7 @@
 #include "Robot.h"
+
 #define MAX_SPEED 61
+#define RANDOM_SWEEP 1
 
 /*
  * Constructor for the AI class
@@ -7,6 +9,7 @@
 AI::AI(ExternalData *externalData, Control *control) {
 	_externalData = externalData;
 	_control = control;
+ timeSinceLastRandomSweep = 0;
 }
 
 
@@ -62,13 +65,17 @@ void AI::decide(State *state) {
 //if we are in free drive mode we need to look for nearby obstancles
 //and slow down or stop depending on how close they are
   else if (_currentMode == FreeDrive) {
+    
 		_control->orientRangeFinder(90);
     float straightAheadDistance = _externalData->distance(0, false, (0.5 * state->v));
 		Serial.print("Straight ahead distance: ");
 		Serial.println(straightAheadDistance);
     Vector shortTermGoal;
-
-    if (straightAheadDistance < 10) {
+    timeSinceLastRandomSweep++;
+    Serial.print("Time since last sweep: ");
+    Serial.print(timeSinceLastRandomSweep);
+    
+    if (straightAheadDistance < 15) {
       _control->stop();
       shortTermGoal.y = 0.0;
 			if (sweep() == Right) {
@@ -79,16 +86,33 @@ void AI::decide(State *state) {
 				shortTermGoal.x = -1.0;
 			}
     }
-    else if (straightAheadDistance < 60) {
+    else if (straightAheadDistance < 75) {
 			Serial.println("Slowing");
       control.slowDown(state);
 			return;
     }
     else {
 			Serial.println("Careening");
-			shortTermGoal.x = 0;
-			shortTermGoal.y = 10.0;
-			state->v = MAX_SPEED;
+      //check if we should do a random sweep
+      
+      if (timeSinceLastRandomSweep > 15 && RANDOM_SWEEP) {
+        timeSinceLastRandomSweep = 0;
+        Serial.println("Doing random sweep");
+        if (sweep() == Right) {
+          Serial.println("Turning right to avoid object");
+          shortTermGoal.x = 1.0;
+        } else {
+          Serial.println("Turning left to avoid object");
+          shortTermGoal.x = -1.0;
+        }
+        shortTermGoal.y = 2;
+        
+      } else {
+        shortTermGoal.x = 0;
+			  shortTermGoal.y = 10.0;
+      }
+      
+      state->v = MAX_SPEED;
     }
 		
 		control.go(state, &shortTermGoal, false);
@@ -117,9 +141,9 @@ Direction AI::sweep() {
 void AI::updateMode() {
   Mode mode = _externalData->mode();
 	
-	if (mode != _currentMode) {
-		// we have changed modes
-	}
+//	if (mode != _currentMode) {
+//		 we have changed modes
+//	}
 	
 	_currentMode = mode;
 }

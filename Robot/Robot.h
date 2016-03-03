@@ -112,6 +112,7 @@ private:
 	Control *_control;
 	ExternalData *_externalData;
 	Mode _currentMode;
+  unsigned long timeSinceLastRandomSweep;
 };
 
 /*
@@ -235,6 +236,7 @@ public:
 	 * take some action.
 	 */
 	void sendByteToSlave(char byte);
+
     
 private:
 	/*	void wheelControl(float right_velocity, float left_velocity)

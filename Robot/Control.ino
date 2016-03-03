@@ -74,7 +74,7 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 		state->r_PWM = (error > 0) ? 255 : 0;
 		wheelControl(state);
 		delay(10);
-		state->heading = (error > 0) ? state->heading - arc/L : state->heading + arc/L;;
+		state->heading = (error > 0) ? state->heading - arc/L : state->heading + arc/L;
 		error = state->heading - desired_heading;
 		error = atan2(sin(error), cos(error));
 		// Serial.println(error);
@@ -103,8 +103,10 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 *  to pin numbers.
 */
 void Control::wheelControl(State * state) {
-	digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
-	analogWrite(E1, state->r_PWM); analogWrite(E2, state->l_PWM);
+	digitalWrite(M1, HIGH); 
+	digitalWrite(M2, HIGH);
+	analogWrite(E1, state->r_PWM); 
+	analogWrite(E2, state->l_PWM);
 }
 
 

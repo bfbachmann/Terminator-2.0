@@ -69,6 +69,10 @@ void setup() {
 	destination.y = 100;
 	
 	control.stop();
+
+ destination.x = -10;
+ destination.y = -20;
+ control.go(state, destination, true);
 }
 
 void loop() {
