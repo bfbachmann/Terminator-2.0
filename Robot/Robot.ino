@@ -69,24 +69,20 @@ void setup() {
 	destination.y = 100;
 	
 	control.stop();
-
- destination.x = -10;
- destination.y = -20;
- control.go(state, destination, true);
 }
 
 void loop() {
 	externalData.clearCache();
 	//
-	// Mode mode = externalData.mode();
-	//
-	// if (mode == FreeDrive) {
-	// 	Serial.println("Free drive");
-	// } else if (mode == FollowLine) {
-	// 	Serial.println("Follow line");
-	// } else {
-	// 	Serial.println("Invaid mode");
-	// }
+	Mode mode = externalData.mode();
+
+	if (mode == FreeDrive) {
+		Serial.println("Free drive");
+	} else if (mode == FollowLine) {
+		Serial.println("Follow line");
+	} else {
+		Serial.println("Invaid mode");
+	}
 	//
 	// Serial.print("Distances:\t");
 	// Serial.print(externalData.distance(0));
@@ -111,15 +107,4 @@ void loop() {
 	// delay(500);
 		
 	ai.decide(&state);
-	
-	// Serial.print("Start time:\t");
-	// Serial.println(millis());
-	//
-	// Serial.println(externalData.temperature());
-	//
-	// Serial.print("End time:\t");
-	// Serial.println(millis());
-	//
-	// delay(1000);
-	
 }
