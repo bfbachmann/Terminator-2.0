@@ -1,7 +1,10 @@
 #include "Robot.h"
 
-#define MAX_SPEED 61
+#define RANDOM_SWEEP_DELAY_CYCLES 15
 #define RANDOM_SWEEP 1
+
+#define FREE_DRIVE_SLOW_DISTANCE 75
+#define FREE_DRIVE_HALT_DISTANCE 15
 
 /*
  * Constructor for the AI class
@@ -68,53 +71,66 @@ void AI::decide(State *state) {
     
 		_control->orientRangeFinder(90);
     float straightAheadDistance = _externalData->distance(0, false, (0.5 * state->v));
+#ifdef DEBUG
 		Serial.print("Straight ahead distance: ");
 		Serial.println(straightAheadDistance);
+#endif
     Vector shortTermGoal;
     timeSinceLastRandomSweep++;
+#ifdef DEBUG
     Serial.print("Time since last sweep: ");
     Serial.print(timeSinceLastRandomSweep);
+#endif
     
-    if (straightAheadDistance < 20) {
+    if (straightAheadDistance < FREE_DRIVE_HALT_DISTANCE) {
       _control->stop();
       shortTermGoal.y = 0.0;
 			if (sweep() == Right) {
+#ifdef DEBUG
 				Serial.println("Turning right to avoid object");
+#endif
 				shortTermGoal.x = 1.0;
 			} else {
+#ifdef DEBUG
 				Serial.println("Turning left to avoid object");
+#endif
 				shortTermGoal.x = -1.0;
 			}
     }
-    else if (straightAheadDistance < 75) {
+    else if (straightAheadDistance < FREE_DRIVE_SLOW_DISTANCE) {
+#ifdef DEBUG
 			Serial.println("Slowing");
+#endif
       control.slowDown(state);
 			return;
     }
     else {
+#ifdef DEBUG
 			Serial.println("Careening");
+#endif
       //check if we should do a random sweep
-      
-      if (timeSinceLastRandomSweep > 8 && RANDOM_SWEEP) {
+
+#ifdef RANDOM_SWEEP
+      if (timeSinceLastRandomSweep > RANDOM_SWEEP_DELAY_CYCLES) {
         timeSinceLastRandomSweep = 0;
         Serial.println("Doing random sweep");
-        Direction sweepResult = sweep();
-        if (sweepResult == Right) {
+        if (sweep() == Right) {
+#ifdef DEBUG
           Serial.println("Turning right to avoid object");
-          shortTermGoal.x = 2.0;
-        } else if (sweepResult == Left){
-          Serial.println("Turning left to avoid object");
-          shortTermGoal.x = -2.0;
+#endif
+          shortTermGoal.x = 1.0;
         } else {
-          shortTermGoal.x = 0;
+#ifdef DEBUG
+          Serial.println("Turning left to avoid object");
+#endif
+          shortTermGoal.x = -1.0;
         }
-        shortTermGoal.y = 1;
-        
-      } else {
-        shortTermGoal.x = 0;
-			  shortTermGoal.y = 10.0;
+        shortTermGoal.y = 2;
       }
-      
+#else
+      shortTermGoal.x = 0;
+		  shortTermGoal.y = 10.0;
+#endif
       state->v = MAX_SPEED;
     }
 		
@@ -152,8 +168,8 @@ Vector *AI::sweep(uint8_t offset) {
   float reading;
   
   for (i = 0; i <= 180; i += offset) {
-     _control.orientRangeFinder(i);
-     reading = _externalData.distance(0, true);
+     _control->orientRangeFinder(i);
+     reading = _externalData->distance(0, true);
      avoidanceVector->x += reading*cos(i*PI/180);
      avoidanceVector->y += reading*sin(i*PI/180);
   }

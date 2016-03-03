@@ -50,7 +50,9 @@ State state;
 Vector destination;
 
 void setup() {
+#ifdef DEBUG
 	Serial.begin(9600);
+#endif
 	Wire.begin();
 	
 	externalData.initializePins();
@@ -74,8 +76,7 @@ void setup() {
 }
 
 void loop() {
-	externalData.clearCache();
-	//
+#ifdef DEBUG
 	Mode mode = externalData.mode();
 
 	if (mode == FreeDrive) {
@@ -85,6 +86,30 @@ void loop() {
 	} else {
 		Serial.println("Invaid mode");
 	}
+
+#endif
+	//
+	// Serial.print("Distances:\t");
+	// Serial.print(externalData.distance(0));
+	// Serial.print('\t');
+	// Serial.println(externalData.distance(1));
+	//
+	// Serial.print("Temperature:\t");
+	// Serial.println(externalData.temperature());
+	//
+	// delay(500);
+	
+	// Serial.print("Reflectivities:\t");
+	// Serial.print(externalData.reflectivity(0));
+	// Serial.print('\t');
+	// Serial.print(externalData.reflectivity(1));
+	// Serial.print('\t');
+	// Serial.print(externalData.reflectivity(2));
+	// Serial.print('\t');
+	// Serial.print(externalData.reflectivity(3));
+	// Serial.print('\n');
+	
+	// delay(500);
 		
 	ai.decide(&state);
 }

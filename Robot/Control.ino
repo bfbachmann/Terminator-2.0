@@ -19,8 +19,7 @@ By Chad Lagore
 #define R 6.5
 #define L 16
 
-// Max speed in cm/s. 
-#define MAX_SPEED 61
+#define SERVO_DELAY_PER_DEGREE 1
 
 #define _USE_MATH_DEFINES
 
@@ -69,14 +68,18 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 	state->l_PWM = state->v / MAX_SPEED * 255;
 	state->r_PWM = state->v / MAX_SPEED * 255;
 	wheelControl(state, true, true);
-	// Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
+#ifdef DEBUG
+	Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
+#endif
         
 	/* Drive straight  */
 	while(distance > 2) {
 		distance = distance - (factor * MAX_RPM / 60000 * 2 * R * M_PI/2);
 		delay(10);
-		// Serial.println(distance);
-		// Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
+#ifdef DEBUG
+		Serial.println(distance);
+		Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
+#endif
 	}
         
 	if(stopAtDestination)
@@ -126,22 +129,24 @@ void Control::adjustHeading(State * state, Vector * destination) {
 */
 void Control::orientRangeFinder(int orientation) {
 	if (_currentRangeFinderOrientation != orientation) {
+#ifdef DEBUG
 		Serial.println("Orienting range finder");
+#endif
 		rangeFinderServo.write(orientation);
+		// give the servo a chance to actually move - 3ms per degree moved
+		delay(SERVO_DELAY_PER_DEGREE * abs(_currentRangeFinderOrientation - orientation));
 		_currentRangeFinderOrientation = orientation;
-		delay(100);
 	}
 }
 /*
 *  Completes one time step in the control flow of a line-following behaviour.
 */
 void Control::followLine(State * state) {
-	// const int thresh = 100;
-	float factor = 2;
+
+	const float factor = 2;
     
 	digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
 	analogWrite(E1, factor*state->l_PWM); analogWrite(E2, factor*state->r_PWM);
-	//  Serial.print(factor*state->l_PWM);   Serial.println(factor*state->r_PWM); 
 }
 
 void Control::stop() {
