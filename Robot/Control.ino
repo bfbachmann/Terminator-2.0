@@ -128,20 +128,33 @@ void Control::orientRangeFinder(int orientation) {
 /*
 *  Completes one time step in the control flow of a line-following behaviour.
 */
-void Control::followLine(float *reflectivities, State * state) {
-	const int thresh = 100;
+void Control::followLine(State * state) {
+	// const int thresh = 100;
 	float factor = 2;
-
-	// turn left
-	if(reflectivities[0] > thresh) { state->l_PWM = 55; state->r_PWM = 100;
-		// or turn right
-	} else if(reflectivities[3] > thresh) { state->l_PWM = 100; state->r_PWM = 55;
-		// or use state to remember in which direction the lost line is
-	} else if(reflectivities[0] < thresh && reflectivities[1] < thresh && reflectivities[2] < thresh && reflectivities[3] < thresh) {
-		if (state->r_PWM > state->l_PWM) { state->l_PWM = 30; }
-		else { state->r_PWM = 30; }
-		// or else drive straight
-	} else { state->r_PWM = 100; state->l_PWM = 100; }
+	//
+	// if (reflectivities[0] > thresh) {
+	// 	// turn left
+	// 	state->l_PWM = 55;
+	// 	state->r_PWM = 100;
+	// } else if (reflectivities[3] > thresh) {
+	// 	// or turn right
+	// 	state->l_PWM = 100;
+	// 	state->r_PWM = 55;
+	// } else if (reflectivities[0] < thresh &&
+	// 						reflectivities[1] < thresh &&
+	// 						reflectivities[2] < thresh &&
+	// 						reflectivities[3] < thresh) {
+	// 	// or use state to remember in which direction the lost line is
+	// 	if (state->r_PWM > state->l_PWM) {
+	// 		state->l_PWM = 30;
+	// 	} else {
+	// 		state->r_PWM = 30;
+	// 	}
+	// } else {
+	// 	// or else drive straight
+	// 	state->r_PWM = 100;
+	// 	state->l_PWM = 100;
+	// }
 
 	//  Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');
 	//  Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);

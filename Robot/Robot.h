@@ -296,12 +296,10 @@ public:
 	*	Completes one time step in the control flow of a line-following behaviour.
 	*	
 	*	Parameters:		
-	*	float *reflectivities:  A pointer to the location in memory storing the
-  *         readings from the reflective optical sensors. This parameter must
-  *         point to a location with at least 'numberOfReflectivitySensors'
-  *         readings.
+	*	State *state:	 state variable representing the action to be taken by
+	* 							 the robot.
 	*/	
-  void followLine(float *reflectivities, State *state);
+  void followLine(State *state);
     
 private:
 #pragma mark Pin instance variables

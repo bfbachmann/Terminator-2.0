@@ -30,9 +30,33 @@ void AI::decide(State *state) {
 
 //if we are in line we we should just call control to follow line
   if (_currentMode == FollowLine) {
-		float* reflectivities = _externalData->reflectivities();
-     _control->followLine(reflectivities, state);
-		 free(reflectivities);
+		const int thresh = 100;
+
+		if (_externalData->reflectivity(0) > thresh) {
+			// turn left
+			state->l_PWM = 55;
+			state->r_PWM = 100;
+		} else if (_externalData->reflectivity(3) > thresh) {
+			// or turn right
+			state->l_PWM = 100;
+			state->r_PWM = 55;
+		} else if (_externalData->reflectivity(0) < thresh && 
+								_externalData->reflectivity(1) < thresh && 
+								_externalData->reflectivity(2) < thresh && 
+								_externalData->reflectivity(3) < thresh) {
+			// or use state to remember in which direction the lost line is
+			if (state->r_PWM > state->l_PWM) {
+				state->l_PWM = 30;
+			} else { 
+				state->r_PWM = 30;
+			}
+		} else {
+			// or else drive straight
+			state->r_PWM = 100;
+			state->l_PWM = 100;
+		}
+		
+     _control->followLine(state);
   }
 
 //if we are in free drive mode we need to look for nearby obstancles
@@ -78,10 +102,10 @@ void AI::decide(State *state) {
  */
 Direction AI::sweep() {
   _control->orientRangeFinder(0);
-	float leftDistance = _externalData->distance(0, true);
+	float rightDistance = _externalData->distance(0, true);
 	
 	_control->orientRangeFinder(180);
-	float rightDistance = _externalData->distance(0, true);
+	float leftDistance = _externalData->distance(0, true);
 	
 	if (leftDistance > rightDistance) {
 		return Left;

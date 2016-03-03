@@ -22,10 +22,10 @@
 // reflectivity sensors
 #define NUMBER_OF_REFLECTIVITY_SENSORS 4
 
-#define REFLECTIVITY_SENSOR_1_PIN A0
-#define REFLECTIVITY_SENSOR_2_PIN A1
-#define REFLECTIVITY_SENSOR_3_PIN A2
-#define REFLECTIVITY_SENSOR_4_PIN A3
+#define REFLECTIVITY_SENSOR_1_PIN A3 // leftmost sensor
+#define REFLECTIVITY_SENSOR_2_PIN A2
+#define REFLECTIVITY_SENSOR_3_PIN A1
+#define REFLECTIVITY_SENSOR_4_PIN A0 // rightmost sensor
 
 #define WIRE_DEVICE 8
 
@@ -72,17 +72,17 @@ void setup() {
 }
 
 void loop() {
-	// externalData.clearCache();
+	externalData.clearCache();
 	//
-	// Mode mode = externalData.mode();
-	//
-	// if (mode == FreeDrive) {
-	// 	Serial.println("Free drive");
-	// } else if (mode == FollowLine) {
-	// 	Serial.println("Follow line");
-	// } else {
-	// 	Serial.println("Invaid mode");
-	// }
+	Mode mode = externalData.mode();
+
+	if (mode == FreeDrive) {
+		Serial.println("Free drive");
+	} else if (mode == FollowLine) {
+		Serial.println("Follow line");
+	} else {
+		Serial.println("Invaid mode");
+	}
 	//
 	// Serial.print("Distances:\t");
 	// Serial.print(externalData.distance(0));
@@ -92,6 +92,18 @@ void loop() {
 	// Serial.print("Temperature:\t");
 	// Serial.println(externalData.temperature());
 	//
+	// delay(500);
+	
+	// Serial.print("Reflectivities:\t");
+	// Serial.print(externalData.reflectivity(0));
+	// Serial.print('\t');
+	// Serial.print(externalData.reflectivity(1));
+	// Serial.print('\t');
+	// Serial.print(externalData.reflectivity(2));
+	// Serial.print('\t');
+	// Serial.print(externalData.reflectivity(3));
+	// Serial.print('\n');
+	
 	// delay(500);
 		
 	ai.decide(&state);
