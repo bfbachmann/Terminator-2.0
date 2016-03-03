@@ -175,10 +175,6 @@ public:
 	*                          If false, the robot will continue in the
 	*                          specified direction until instructed otherwise.
 	*
-	* Returns:
-	* boolean:                 If the robot is within a sufficiently small
-	*                          threshold of the requested destination, the go
-	*                          function will return a boolean true.
 	*/
 	void go(State *state, Vector *destination, bool stopAtDestination);
     
@@ -257,7 +253,7 @@ private:
 	*						  second, to be applied to the right wheel. Similar
 	*						  conditions to the left_w parameter.
 	*/
-	void wheelControl(State * state);
+	void wheelControl(State * state, bool left, bool right);
 
 	/*	void calculateOdometry(State * state, float left_w, float right_w)
 	*
@@ -291,6 +287,18 @@ private:
 	*					to use in calculating state changes during a time step.
 	*/	
 	float wheelVelocity(float w, float v, int wheel);
+
+        /*	void adjustHeading(State * state, Vector * destination);	
+	*
+	*	Caculates an error in its heading, and stabilizes it to zero by adjusting wheel speeds.
+	*	
+	*	Parameters:		
+	*	State * state:          The state structure. Pre-loaded is a current heading. 
+	*				
+	*	Vector * destination:	A vector structure with a desired destination.
+	*		
+	*/	
+        void adjustHeading(State * state, Vector * destination);
  
 public:
  /*	void followLine(float *reflectivities)	

@@ -54,36 +54,21 @@ Control flow for a single time step in moving the robot towards its
 destination. 
 */
 void Control::go(State * state, Vector * destination, bool stopAtDestination) {
-	float desired_heading, error, velocity, distance, arc, MAX_RPM;
+	float distance, MAX_RPM;
 	state->heading = M_PI/2;
 	MAX_RPM = 160.0;
-	float factor = 10.0;
+	float factor = 8.0;
         
-	arc = 4.2 * MAX_RPM / 60000 * 2 * M_PI * R;
+        /* Adjust heading */
+        adjustHeading(state, destination);
         
-	/* Determine desired heading, velocity and angular velocity */
+	/* Determine desired distance */
 	distance = sqrt(destination->x*destination->x + destination->y*destination->y);
-	desired_heading = atan2(destination->y, destination->x); 
-	error = state->heading - desired_heading;
-	error = atan2(sin(error), cos(error));
-	// Serial.println(error);
-        
-	/* Correct heading */
-	while(abs(error) > 0.05) {
-		state->l_PWM = (error < 0) ? 255 : 0;
-		state->r_PWM = (error > 0) ? 255 : 0;
-		wheelControl(state);
-		delay(10);
-		state->heading = (error > 0) ? state->heading - arc/L : state->heading + arc/L;
-		error = state->heading - desired_heading;
-		error = atan2(sin(error), cos(error));
-		// Serial.println(error);
-	}
-        
+	
 	/* Implement desired wheel speeds */
 	state->l_PWM = state->v / MAX_SPEED * 255;
 	state->r_PWM = state->v / MAX_SPEED * 255;
-	wheelControl(state);
+	wheelControl(state, true, true);
 	// Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
         
 	/* Drive straight  */
@@ -102,13 +87,38 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 /*  Applies PWM signal to wheel motors. This function will require access
 *  to pin numbers.
 */
-void Control::wheelControl(State * state) {
-	digitalWrite(M1, HIGH); 
-	digitalWrite(M2, HIGH);
-	analogWrite(E1, state->r_PWM); 
-	analogWrite(E2, state->l_PWM);
+void Control::wheelControl(State * state, bool left, bool right) {
+      	digitalWrite(M1, right ? HIGH : LOW); 
+      	digitalWrite(M2, left ? HIGH : LOW);
+      	analogWrite(E1, state->r_PWM); 
+      	analogWrite(E2, state->l_PWM);
 }
 
+void Control::adjustHeading(State * state, Vector * destination) {
+        float desired_heading, error, arc, MAX_RPM;
+	MAX_RPM = 160.0;
+	float factor = 10.0;
+        
+	arc = 3.2 * MAX_RPM / 60000 * 2 * M_PI * R * 2;
+        
+	/* Determine desired heading, velocity and angular velocity */
+	desired_heading = atan2(destination->y, destination->x); 
+	error = state->heading - desired_heading;
+	error = atan2(sin(error), cos(error));
+	// Serial.println(error);
+        
+	/* Correct heading */
+	while(abs(error) > 0.05) {
+		state->l_PWM = 255;
+		state->r_PWM = 255;
+		wheelControl(state, error < 0, error > 0);
+		delay(10);
+		state->heading = (error > 0) ? state->heading - arc/L : state->heading + arc/L;
+		error = state->heading - desired_heading;
+		error = atan2(sin(error), cos(error));
+		// Serial.println(error);
+	}
+}
 
 /*
 * Set the servo motor to point in the direction 
