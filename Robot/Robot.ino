@@ -69,6 +69,10 @@ void setup() {
 	destination.y = 100;
 	
 	control.stop();
+
+ destination.x = -80;
+ destination.y = -100;
+ control.go(&state, &destination, true);
 }
 
 void loop() {
@@ -106,5 +110,5 @@ void loop() {
 	
 	// delay(500);
 		
-	ai.decide(&state);
+//	ai.decide(&state);
 }
