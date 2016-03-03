@@ -456,7 +456,6 @@ public:
  
 private:
 #pragma mark Pin variables
-	int _temperaturePin;
   int _modePin;
 	int _numberOfUltrasonicSensors;
 	uint8_t* _ultrasonicSensorPins;
