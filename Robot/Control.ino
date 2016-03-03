@@ -105,8 +105,8 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 void Control::wheelControl(State * state) {
 	digitalWrite(M1, HIGH); 
 	digitalWrite(M2, HIGH);
+  analogWrite(E2, state->l_PWM*0.99);
 	analogWrite(E1, state->r_PWM); 
-	analogWrite(E2, state->l_PWM);
 }
 
 
@@ -119,7 +119,7 @@ void Control::orientRangeFinder(int orientation) {
 		Serial.println("Orienting range finder");
 		rangeFinderServo.write(orientation);
 		_currentRangeFinderOrientation = orientation;
-		delay(500);
+		delay(100);
 	}
 }
 /*
@@ -128,33 +128,6 @@ void Control::orientRangeFinder(int orientation) {
 void Control::followLine(State * state) {
 	// const int thresh = 100;
 	float factor = 2;
-	//
-	// if (reflectivities[0] > thresh) {
-	// 	// turn left
-	// 	state->l_PWM = 55;
-	// 	state->r_PWM = 100;
-	// } else if (reflectivities[3] > thresh) {
-	// 	// or turn right
-	// 	state->l_PWM = 100;
-	// 	state->r_PWM = 55;
-	// } else if (reflectivities[0] < thresh &&
-	// 						reflectivities[1] < thresh &&
-	// 						reflectivities[2] < thresh &&
-	// 						reflectivities[3] < thresh) {
-	// 	// or use state to remember in which direction the lost line is
-	// 	if (state->r_PWM > state->l_PWM) {
-	// 		state->l_PWM = 30;
-	// 	} else {
-	// 		state->r_PWM = 30;
-	// 	}
-	// } else {
-	// 	// or else drive straight
-	// 	state->r_PWM = 100;
-	// 	state->l_PWM = 100;
-	// }
-
-	//  Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');
-	//  Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
     
 	digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
 	analogWrite(E1, factor*state->l_PWM); analogWrite(E2, factor*state->r_PWM);
@@ -167,7 +140,7 @@ void Control::stop() {
 }
 
 void Control::slowDown(State *state) {
-	state->v = state->v - 2;
+	state->v = state->v - 4;
 	
 	if (state->v < 20) {
 		state->v = 20;

@@ -61,7 +61,8 @@ typedef enum {
 
 typedef enum {
 	Left,
-	Right
+	Right,
+  Straight
 } Direction;
 
 
@@ -94,11 +95,20 @@ public:
 private:
 
 /*
- * Pan the servo motor from 0 to 180 degrees and return the angle (int radians)
+ * Pan the servo motor from 0 to 180 
+ * and return the direction corresponding to the best direction 
  * corresponding to the furthest distance read (0 degrees being 
  * left of forward relative to heading of robot, 180 being right).
  */
   Direction sweep();
+
+  /*
+   * Pan the servo motor from 0 to 180 in offset increments
+   * and return the direction corresponding to the best direction 
+   * corresponding to the furthest distance read (0 degrees being 
+   * left of forward relative to heading of robot, 180 being right).
+   */
+  Vector *sweep(uint8_t offset);
 	
 	/*
 	 * void updateMode()
@@ -458,6 +468,7 @@ public:
  
 private:
 #pragma mark Pin variables
+	int _temperaturePin;
   int _modePin;
 	int _numberOfUltrasonicSensors;
 	uint8_t* _ultrasonicSensorPins;

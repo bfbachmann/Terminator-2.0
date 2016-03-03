@@ -75,7 +75,7 @@ void AI::decide(State *state) {
     Serial.print("Time since last sweep: ");
     Serial.print(timeSinceLastRandomSweep);
     
-    if (straightAheadDistance < 15) {
+    if (straightAheadDistance < 20) {
       _control->stop();
       shortTermGoal.y = 0.0;
 			if (sweep() == Right) {
@@ -95,17 +95,20 @@ void AI::decide(State *state) {
 			Serial.println("Careening");
       //check if we should do a random sweep
       
-      if (timeSinceLastRandomSweep > 15 && RANDOM_SWEEP) {
+      if (timeSinceLastRandomSweep > 8 && RANDOM_SWEEP) {
         timeSinceLastRandomSweep = 0;
         Serial.println("Doing random sweep");
-        if (sweep() == Right) {
+        Direction sweepResult = sweep();
+        if (sweepResult == Right) {
           Serial.println("Turning right to avoid object");
-          shortTermGoal.x = 1.0;
-        } else {
+          shortTermGoal.x = 2.0;
+        } else if (sweepResult == Left){
           Serial.println("Turning left to avoid object");
-          shortTermGoal.x = -1.0;
+          shortTermGoal.x = -2.0;
+        } else {
+          shortTermGoal.x = 0;
         }
-        shortTermGoal.y = 2;
+        shortTermGoal.y = 1;
         
       } else {
         shortTermGoal.x = 0;
@@ -130,12 +133,37 @@ Direction AI::sweep() {
 	
 	_control->orientRangeFinder(180);
 	float leftDistance = _externalData->distance(0, true);
-	
-	if (leftDistance > rightDistance) {
+
+  if (leftDistance - rightDistance < 10) {
+    return Straight;
+  }
+	else if (leftDistance > rightDistance) {
 		return Left;
 	} else {
 		return Right;
 	}
+}
+
+Vector *AI::sweep(uint8_t offset) {
+  int i;
+  Vector *avoidanceVector = (Vector *) malloc(sizeof(Vector));
+  avoidanceVector.x = 0;
+  avoidanceVector.y = 0;
+  float reading;
+  
+  for (i = 0; i <= 180; i += offset) {
+     _control.orientRangeFinder(180-i);
+     reading = _externalData.distance(0, true);
+     avoidanceVector.x += reading*cos(i*PI/180);
+     avoidanceVector.y += reading*sin(i*PI/180);
+  }
+
+  for (i = 180 + offset; i < 360; i += offset) {
+     avoidanceVector.x += reading*cos(i*PI/180);
+     avoidanceVector.y += reading*sin(i*PI/180);
+  }
+
+  return avoidanceVector;
 }
 
 void AI::updateMode() {
