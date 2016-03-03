@@ -19,11 +19,6 @@ By Chad Lagore
 #define R 6.5
 #define L 16
 
-// PID controller tuning.
-#define k_p 1.5
-#define k_i 1
-#define k_d 0
-
 // Max speed in cm/s. 
 #define MAX_SPEED 61
 
