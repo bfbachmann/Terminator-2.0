@@ -40,7 +40,6 @@ ExternalData::~ExternalData() {
 
 void ExternalData::initializePins() {
 	// initialize pins
-	pinMode(_temperaturePin, INPUT);
   pinMode(_modePin, INPUT_PULLUP);
 
 	int i;
@@ -70,9 +69,9 @@ void ExternalData::clearCache() {
 #pragma mark Public data acquisition functions
 
 float ExternalData::temperature(bool fresh) {
-    if (!fresh) {
+    if (!fresh && _lastTemperatureTimestamp > 0) {
 			// if our last reading is less than two seconds old, return it
-        if ((_lastTemperatureTimestamp + TEMPERATURE_CACHE_AGE) < millis()) {
+        if ((_lastTemperatureTimestamp + TEMPERATURE_CACHE_AGE) > millis()) {
             return _lastTemperature;
         }
     }
@@ -155,19 +154,32 @@ Mode ExternalData::mode() {
         
 float ExternalData::_readTemperature() {
 	// request the temperature from the slave
+	Serial.println("Transmitting command");
+	// delay(50);
 	Wire.beginTransmission(WIRE_DEVICE);
 	Wire.write('t');
 	Wire.endTransmission();
 	
 	// request one byte from slave
+	Serial.println("Requesting response");
+	unsigned int timeout = millis() + 10;
 	Wire.requestFrom(WIRE_DEVICE, 1);
 	
-	char receivedByte;
+	char receivedByte = '\n';
 	
-	if (Wire.available()) {
-		receivedByte = Wire.read();
-	} else {
-		return INFINITY; // if something goes wrong, return not a number
+	while (timeout > millis()) {
+		delay(1);
+		
+		while (Wire.available() > 0) {
+			receivedByte = Wire.read();
+			Serial.println(receivedByte);
+			timeout = 0;
+		}
+	}
+	
+	if (receivedByte == '\n') {
+		Serial.println("Wire not available. Aborting.");
+		return INFINITY; // if something goes wrong, return infinity
 	}
 	
 	int voltage = (int)receivedByte;
@@ -175,6 +187,13 @@ float ExternalData::_readTemperature() {
 	if (voltage < 0 || voltage > 1023) {
 		return INFINITY;
 	}
+	
+	/*
+	Serial.println("Reading temperature from sensor");
+	int voltage = analogRead(5);
+	Serial.print("Read voltage ");
+	Serial.println(voltage);
+	*/
 
 	/*scale it, taking into account the arduino's return range and the sensor's specs*/
 	return ((float)voltage * 500.0) / 1023.0;

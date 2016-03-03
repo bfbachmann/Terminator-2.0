@@ -10,7 +10,8 @@ unsigned int time0;
 unsigned int time1;
 unsigned int timeDif;
 char detected;
-double circumference = M_PI * 2;
+float circumference = M_PI * 2;
+float wheelDistance;
 long field;
 long newField;
 
@@ -20,6 +21,7 @@ void setup()
   time0 = 0;
   field = -100;
   detected = 0;
+  wheelDistance = 0;
 }
 
 long getField(int pin)
@@ -31,8 +33,12 @@ long getField(int pin)
   return gauss;
 }
 
-double getSpeed(){
+float getSpeed(){
   return circumference/timeDif*1000.0;
+}
+
+float getWheelDistance(){
+  return wheelDistance;
 }
 
 void loop(){
@@ -40,18 +46,19 @@ void loop(){
   if(detected == 1){
     if(newField > THRESHOLD){
       detected = 0;
-      Serial.println("Magnet lost");
+      //Serial.println("Magnet lost");
       time1 = millis();
       timeDif = time1-time0;
       time0 = time1;
-      Serial.print("Time dif: ");
-      Serial.println(timeDif);
+      //Serial.print("Time dif: ");
+      //Serial.println(timeDif);
     }
   }
   else{
     if(newField < THRESHOLD){
       detected = 1;
-      Serial.println("Magnet found");
+      wheelDistance += circumference;
+      //Serial.println("Magnet found");
     }
   }
   field = newField;

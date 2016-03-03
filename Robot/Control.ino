@@ -59,7 +59,7 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 	MAX_RPM = 160.0;
 	float factor = 10.0;
         
-	arc = 4.2 * MAX_RPM / 60000 * 2 * M_PI * R;
+	arc = 4.2 * MAX_RPM / 60000 * 2 * M_PI * R * 2;
         
 	/* Determine desired heading, velocity and angular velocity */
 	distance = sqrt(destination->x*destination->x + destination->y*destination->y);
@@ -70,8 +70,8 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
         
 	/* Correct heading */
 	while(abs(error) > 0.05) {
-		state->l_PWM = (error < 0) ? 255 : 0;
-		state->r_PWM = (error > 0) ? 255 : 0;
+		state->l_PWM = (error < 0) ? 255 : -255;
+		state->r_PWM = (error > 0) ? 255 : -255;
 		wheelControl(state);
 		delay(10);
 		state->heading = (error > 0) ? state->heading - arc/L : state->heading + arc/L;
