@@ -12,6 +12,9 @@
 #include <Servo.h>
 #include <limits.h>
 
+// max speed in cm/s
+#define MAX_SPEED 61
+
 class AI;
 class ExternalData;
 class Control;
