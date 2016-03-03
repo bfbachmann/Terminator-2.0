@@ -8,18 +8,16 @@ By Chad Lagore
 #include <math.h>
 #include "Robot.h"
 
+// pins for the motor shield
+#define E1 5  
+#define M1 4 
+#define E2 6                      
+#define M2 7 
+
 // Geometric constants of robot vehicle.
 // Wheel radius (R) and wheel to wheel length (L).
 #define R 6.5
 #define L 16
-
-// PID controller tuning.
-#define k_p 1.5
-#define k_i 1
-#define k_d 0
-
-// Finite time step in ms.
-#define dt 1
 
 // Max speed in cm/s. 
 #define MAX_SPEED 61
@@ -28,110 +26,164 @@ By Chad Lagore
 
 #pragma mark Begin Control implementation
 
-Control::Control(uint8_t receivedIn1, uint8_t receivedIn2, uint8_t receivedIn3, uint8_t receivedIn4, uint8_t receivedRangeFinder) {
-	// save the pins for later
-	in1 = receivedIn1;
-	in2 = receivedIn2;
-	in3 = receivedIn3;
-	in4 = receivedIn4;
+Control::Control(uint8_t receivedRangeFinder) {
 	rangeFinderPin = receivedRangeFinder;
-	
-	rangeFinderServo.attach(rangeFinderPin);
 }
 
 Control::~Control() {
 	// TODO: implement
 }
 
+void Control::initializePins() {
+	pinMode(E1, OUTPUT);
+	pinMode(E2, OUTPUT);
+	pinMode(M1, OUTPUT);
+	pinMode(M2, OUTPUT);
+	pinMode(rangeFinderPin, OUTPUT);
+
+}
+
+void Control::attachRangeFinder() {
+	rangeFinderServo.attach(rangeFinderPin);
+}
+
+
 /*  go(State state, Vector destination, bool StopAtDestination = false)
     
 Control flow for a single time step in moving the robot towards its
 destination. 
 */
-bool Control::go(State * state, Vector * destination, bool stopAtDestination) {
-	float v, w, desired_heading, right_w, left_w, error, velocity;
-	Vector goal;
-    
-	/* Create goal vector */ 
-	goal.x = (destination->x - state->x);
-	goal.y = (destination->y - state->y);
-    
+void Control::go(State * state, Vector * destination, bool stopAtDestination) {
+	float desired_heading, error, velocity, distance, arc, MAX_RPM;
+	state->heading = M_PI/2;
+	MAX_RPM = 160.0;
+	float factor = 10.0;
+        
+	arc = 4.2 * MAX_RPM / 60000 * 2 * M_PI * R;
+        
 	/* Determine desired heading, velocity and angular velocity */
-	state->v = sqrt(goal.x * goal.x + goal.y * goal.y);
-	state->v = (state->v > MAX_SPEED) ? MAX_SPEED : state->v;
-	desired_heading = atan2(goal.y,goal.x); 
-	error = desired_heading - state->heading;
+	distance = sqrt(destination->x*destination->x + destination->y*destination->y);
+	desired_heading = atan2(destination->y, destination->x); 
+	error = state->heading - desired_heading;
 	error = atan2(sin(error), cos(error));
-	state->w = k_p * error + k_i * error * dt;
-    
-	/* Calculate wheel velocities from craft velocity */
-	left_w = wheelVelocity(state->w,state->v,0);
-	right_w = wheelVelocity(state->w,state->v,1);
-    
-	/* Implement wheel velocities */
-	wheelControl(left_w, right_w);
-
-	/* Update state variables */
-	calculateOdometry(state, left_w, right_w);
-
-	/* Return true if within threshold of destination */
-	return (state->v < 5);
+	// Serial.println(error);
+        
+	/* Correct heading */
+	while(abs(error) > 0.05) {
+		state->l_PWM = (error < 0) ? 255 : 0;
+		state->r_PWM = (error > 0) ? 255 : 0;
+		wheelControl(state);
+		delay(10);
+		state->heading = (error > 0) ? state->heading - arc/L : state->heading + arc/L;;
+		error = state->heading - desired_heading;
+		error = atan2(sin(error), cos(error));
+		// Serial.println(error);
+	}
+        
+	/* Implement desired wheel speeds */
+	state->l_PWM = state->v / MAX_SPEED * 255;
+	state->r_PWM = state->v / MAX_SPEED * 255;
+	wheelControl(state);
+	// Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
+        
+	/* Drive straight  */
+	while(distance > 2) {
+		distance = distance - (factor * MAX_RPM / 60000 * 2 * R * M_PI/2);
+		delay(10);
+		// Serial.println(distance);
+		// Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
+	}
+        
+	if(stopAtDestination)
+		stop();
         
 }
 
-/*  Computes left or right wheel angular velocity given craft velocity and
-*  angular velocity. Documentation on these formulae is availabile in the
-*  accompanying report.
-*  
-*  Parameters: angular_velocity, velocity and wheel. Wheel determines
-*  which wheel is being calculated. 0 is for left, 1 is for right.
-*  Returns: A wheel velocity.
-*/
-float Control::wheelVelocity(float w, float v, int wheel) {
-	if(wheel)
-		return (2*v + w*L)/(2*R);
-	else
-		return (2*v - w*L)/(2*R);
-}
-
 /*  Applies PWM signal to wheel motors. This function will require access
- *  to pin numbers.
- */
-void Control::wheelControl(float left_w, float right_w) {
-    int E1 = 5;
-    int E2 = 6;
-    int M1 = 4;
-    int M2 = 7;
-    int left_norm, right_norm = 0;
-    
-    left_norm = (left_w >= 6.66) ? 255 : left_w*255/6.66;
-    right_norm = (right_w >= 6.66) ? 255 : right_w*255/6.66;
-    
-    digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
-    analogWrite(E1, left_norm); analogWrite(E2, right_norm);
-  }
-
-/*  Calculates distance travelled in time step and updates state variables.
-*  
-*  Parameters:   Pointers to State struct, left wheel & right wheel angular 
-*          velocities.
-*  
-*  Disclaimer: There are two ways to compute left & right wheel distance.
-*  The method below, D = w*R*dt, or using some sort of wheel encoder info
-*  given by the magnets and hall sensors. IE D = 2*pi*R*(t/N) where
-*  N is the number of ticks in a total wheel revolution, and t is the 
-*   number of ticks in the given time step. We can and should try both.
+*  to pin numbers.
 */
-void Control::calculateOdometry(State * state, float left_w, float right_w) {
-	float l_distance = left_w * dt * R / 1000;
-	float r_distance = right_w * dt * R / 1000;
-	float distance = (l_distance + r_distance) / 2;
-    
-	state->x = state->x + distance * cos(state->heading);
-	state->y = state->y + distance * sin(state->heading);
-	state->heading = state->heading + (r_distance-l_distance)/L;
+void Control::wheelControl(State * state) {
+	digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
+	analogWrite(E1, state->r_PWM); analogWrite(E2, state->l_PWM);
 }
 
+
+/*
+* Set the servo motor to point in the direction 
+* specified by the orientation parameter.
+*/
 void Control::orientRangeFinder(int orientation) {
-	rangeFinderServo.write(orientation);
+	if (_currentRangeFinderOrientation != orientation) {
+		Serial.println("Orienting range finder");
+		rangeFinderServo.write(orientation);
+		_currentRangeFinderOrientation = orientation;
+		delay(500);
+	}
 }
+/*
+*  Completes one time step in the control flow of a line-following behaviour.
+*/
+void Control::followLine(State * state) {
+	// const int thresh = 100;
+	float factor = 2;
+	//
+	// if (reflectivities[0] > thresh) {
+	// 	// turn left
+	// 	state->l_PWM = 55;
+	// 	state->r_PWM = 100;
+	// } else if (reflectivities[3] > thresh) {
+	// 	// or turn right
+	// 	state->l_PWM = 100;
+	// 	state->r_PWM = 55;
+	// } else if (reflectivities[0] < thresh &&
+	// 						reflectivities[1] < thresh &&
+	// 						reflectivities[2] < thresh &&
+	// 						reflectivities[3] < thresh) {
+	// 	// or use state to remember in which direction the lost line is
+	// 	if (state->r_PWM > state->l_PWM) {
+	// 		state->l_PWM = 30;
+	// 	} else {
+	// 		state->r_PWM = 30;
+	// 	}
+	// } else {
+	// 	// or else drive straight
+	// 	state->r_PWM = 100;
+	// 	state->l_PWM = 100;
+	// }
+
+	//  Serial.print(reflectivities[0]);Serial.print(',');Serial.print(reflectivities[1]);Serial.print(',');
+	//  Serial.print(reflectivities[2]);Serial.print(',');Serial.println(reflectivities[3]);
+    
+	digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
+	analogWrite(E1, factor*state->l_PWM); analogWrite(E2, factor*state->r_PWM);
+	//  Serial.print(factor*state->l_PWM);   Serial.println(factor*state->r_PWM); 
+}
+
+void Control::stop() {
+	digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
+	analogWrite(E1, 0); analogWrite(E2, 0);
+}
+
+void Control::slowDown(State *state) {
+	state->v = state->v - 2;
+	
+	if (state->v < 20) {
+		state->v = 20;
+	}
+	
+	Serial.print("New velocity: ");
+	Serial.println(state->v);
+	
+	Vector destination;
+	destination.x = 0;
+	destination.y = 1;
+	go(state, &destination, false);
+	//decrement current wheel speed by some about and write this new value back to the wheels
+}
+
+void Control::sendByteToSlave(char byte) {
+	Wire.beginTransmission(WIRE_DEVICE);
+	Wire.write(byte);
+	Wire.endTransmission();
+}
+

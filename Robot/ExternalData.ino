@@ -1,91 +1,119 @@
 // minimum and maximum distances to be read from the ultrasonic sensors, in cm
 #define DIST_MAX 200
 #define DIST_MIN 0
- 
+
+// how long a temperature value is considered fresh in milliseconds 
+#define TEMPERATURE_CACHE_AGE 2000
+
 #pragma mark Initializers
 
-ExternalData::ExternalData(int receivedTemperaturePin, int receivedNumberOfUltrasonicSensors, uint8_t** ultrasonicSensors, int receivedNumberOfReflectivitySensors, uint8_t* reflectivitySensors) {
+ExternalData::ExternalData(int numberOfUltrasonicSensors, uint8_t ultrasonicSensors[], int numberOfReflectivitySensors, uint8_t reflectivitySensors[], int modePin) {
 	// save pins
-	temperaturePin = receivedTemperaturePin;
+  _modePin = modePin;
 	
-	numberOfUltrasonicSensors = receivedNumberOfUltrasonicSensors;
-	ultrasonicSensorPins = ultrasonicSensors;
+	_numberOfUltrasonicSensors = numberOfUltrasonicSensors;
+	_ultrasonicSensorPins = ultrasonicSensors;
 	
-	numberOfReflectivitySensors = receivedNumberOfReflectivitySensors;
-	reflectivitySensorPins = reflectivitySensors;
+	_numberOfReflectivitySensors = numberOfReflectivitySensors;
+	_reflectivitySensorPins = reflectivitySensors;
     
 	// initialize caching variables
-	distancesCached = (bool*)malloc(numberOfUltrasonicSensors * sizeof(bool));
-	reflectivitiesCached = (bool*)malloc(numberOfReflectivitySensors * sizeof(bool));
+	_distancesCached = (bool*)malloc(_numberOfUltrasonicSensors * sizeof(bool));
+	_reflectivitiesCached = (bool*)malloc(_numberOfReflectivitySensors * sizeof(bool));
 	clearCache();
-	lastDistances = (float*)malloc(numberOfUltrasonicSensors * sizeof(float));
+	_lastDistances = (float*)malloc(_numberOfUltrasonicSensors * sizeof(float));
+	_lastReflectivities = (float*)malloc(_numberOfReflectivitySensors * sizeof(float));
+	
+	// initialize the temperature to twenty so if we can't ever read from the slave we have a value
+	_lastTemperature = 20.0;
 }
 
 ExternalData::~ExternalData() {
 	// free allocated memory
-	free(distancesCached);
-	free(lastDistances);
+	free(_distancesCached);
+	free(_reflectivitiesCached);
+	free(_lastDistances);
+	free(_lastReflectivities);
 }
 
 #pragma mark Utility functions
 
 void ExternalData::initializePins() {
 	// initialize pins
-	pinMode(temperaturePin, INPUT);
+  pinMode(_modePin, INPUT_PULLUP);
 
 	int i;
-	for (i = 0; i < numberOfUltrasonicSensors; i++) {
-		pinMode(ultrasonicSensorPins[i][0], OUTPUT);
-		pinMode(ultrasonicSensorPins[i][1], INPUT);
+	for (i = 0; i < _numberOfUltrasonicSensors; i++) {
+		pinMode(_ultrasonicSensorPins[2 * i], OUTPUT);
+		pinMode(_ultrasonicSensorPins[(2 * i) + 1], INPUT);
+	}
+	
+	for (i = 0; i < _numberOfReflectivitySensors; i++) {
+		pinMode(_reflectivitySensorPins[i], INPUT);
 	}
 }
 
 void ExternalData::clearCache() {
-    temperatureCached = false;
+    _lastTemperatureTimestamp = 0;
     
     int i;
-    for (i = 0; i < numberOfUltrasonicSensors; i++) {
-        distancesCached[i] = false;
+    for (i = 0; i < _numberOfUltrasonicSensors; i++) {
+    	_distancesCached[i] = false;
     }
 		
-		for (i = 0; i < numberOfReflectivitySensors; i++) {
-			reflectivitiesCached[i] = false;
+		for (i = 0; i < _numberOfReflectivitySensors; i++) {
+			_reflectivitiesCached[i] = false;
 		}
 }
 
 #pragma mark Public data acquisition functions
 
 float ExternalData::temperature(bool fresh) {
-    if (!fresh) {
-        if (temperatureCached) {
-            return lastTemperature;
+    if (!fresh && _lastTemperatureTimestamp > 0) {
+			// if our last reading is less than two seconds old, return it
+        if ((_lastTemperatureTimestamp + TEMPERATURE_CACHE_AGE) > millis()) {
+            return _lastTemperature;
         }
     }
+
+		float newTemperature = _readTemperature();
+		
+		if (newTemperature != INFINITY) {
+			Serial.print("Valid temperature recieved: ");
+			Serial.println(newTemperature);
+	    _lastTemperature = newTemperature;
+	    _lastTemperatureTimestamp = millis();
+		}
     
-    lastTemperature = readTemperature();
-    temperatureCached = true;
-    
-    return lastTemperature;
+    return _lastTemperature;
 }
 
-float ExternalData::distance(int sensor, bool fresh) {
+float ExternalData::distance(int sensor, bool fresh, int maxChange) {
     if (!fresh) {
-        if (distancesCached[sensor]) {
-            return lastDistances[sensor];
+        if (_distancesCached[sensor]) {
+            return _lastDistances[sensor];
         }
     }
     
-    lastDistances[sensor] = readDistance(sensor, temperature());
-    distancesCached[sensor] = true;
-    
-    return lastDistances[sensor];
+    float newDistance = _readDistance(sensor, temperature());
+		
+		if (_distancesCached[sensor]) {
+			if (abs(newDistance - _lastDistances[sensor]) <= maxChange) {
+				_lastDistances[sensor] = newDistance;
+			}
+		} else {
+			_lastDistances[sensor] = newDistance;
+			_distancesCached[sensor] = true;
+		}
+		    
+    return _lastDistances[sensor];
 }
 
 float *ExternalData::distances(bool fresh) {
-	float *returnValues = (float*)malloc(numberOfUltrasonicSensors * sizeof(float));
+	float *returnValues = (float*)malloc(_numberOfUltrasonicSensors * sizeof(float));
     
     int i;
-    for (i = 0; i < numberOfUltrasonicSensors; i++) {
+    for (i = 0; i < _numberOfUltrasonicSensors; i++) {
         returnValues[i] = distance(i, fresh);
     }
   
@@ -93,25 +121,85 @@ float *ExternalData::distances(bool fresh) {
 }
 
 float ExternalData::reflectivity(int sensor, bool fresh) {
-	// TODO: implement
-	return -1;
+  if (!fresh) {
+      if (_reflectivitiesCached[sensor]) {
+          return _lastReflectivities[sensor];
+      }
+  }
+  
+  _lastReflectivities[sensor] = analogRead(_reflectivitySensorPins[sensor]);
+  _reflectivitiesCached[sensor] = true;
+  
+  return _lastReflectivities[sensor];
 }
 
-// float ExternalData::get_distance_at_angle(int angle) {
-// 	control.orientRangeFinder(angle);
-// 	return readDistance(ultrasonicSensors[1][0], ultrasonicSensors[1][1], read_tempterature());
-// }
+float *ExternalData::reflectivities(bool fresh) {
+  float *returnValues = (float*)malloc(_numberOfReflectivitySensors * sizeof(float));
+  // get reading from each refectivity sensor
+  for (int i = 0; i < _numberOfReflectivitySensors; i++) {
+    returnValues[i] = reflectivity(i, fresh);
+  }
+  return returnValues;
+}
+
+Mode ExternalData::mode() {
+	if (digitalRead(_modePin) == HIGH) {
+		return FreeDrive;
+	} else {
+		return FollowLine;
+	}
+}
 
 #pragma mark Private functions
         
-float ExternalData::readTemperature() {
-	/*read the voltage on the temperature pin*/
-	float voltage = (float)analogRead(temperaturePin);
+float ExternalData::_readTemperature() {
+	// request the temperature from the slave
+	Serial.println("Transmitting command");
+	// delay(50);
+	Wire.beginTransmission(WIRE_DEVICE);
+	Wire.write('t');
+	Wire.endTransmission();
+	
+	// request one byte from slave
+	Serial.println("Requesting response");
+	unsigned int timeout = millis() + 10;
+	Wire.requestFrom(WIRE_DEVICE, 1);
+	
+	char receivedByte = '\n';
+	
+	while (timeout > millis()) {
+		delay(1);
+		
+		while (Wire.available() > 0) {
+			receivedByte = Wire.read();
+			Serial.println(receivedByte);
+			timeout = 0;
+		}
+	}
+	
+	if (receivedByte == '\n') {
+		Serial.println("Wire not available. Aborting.");
+		return INFINITY; // if something goes wrong, return infinity
+	}
+	
+	int voltage = (int)receivedByte;
+	
+	if (voltage < 0 || voltage > 1023) {
+		return INFINITY;
+	}
+	
+	/*
+	Serial.println("Reading temperature from sensor");
+	int voltage = analogRead(5);
+	Serial.print("Read voltage ");
+	Serial.println(voltage);
+	*/
+
 	/*scale it, taking into account the arduino's return range and the sensor's specs*/
-	return (voltage * 500.0) / 1023.0;
+	return ((float)voltage * 500.0) / 1023.0;
 }
     
-void ExternalData::pulseOut(uint8_t pin, int microseconds) {
+void ExternalData::_pulseOut(uint8_t pin, int microseconds) {
 	// set the pin to high
 	digitalWrite(pin, HIGH);
 	// wait for the prescribed time
@@ -120,11 +208,12 @@ void ExternalData::pulseOut(uint8_t pin, int microseconds) {
 	digitalWrite(pin, LOW);
 }
     
-float ExternalData::readDistance(int sensor, float temperature) {
+float ExternalData::_readDistance(int sensor, float temperature) {
 	// send the trigger pulse
-	pulseOut(ultrasonicSensorPins[sensor][0], 10);
+	_pulseOut(_ultrasonicSensorPins[sensor * 2], 10);
 	// read the response pulse
-	unsigned long pulseWidth = pulseIn(ultrasonicSensorPins[sensor][1], HIGH);
+  
+	unsigned long pulseWidth = pulseIn(_ultrasonicSensorPins[(sensor * 2) + 1], HIGH);
 	// compute the speed of sound
 	float speedOfSound = 20000.0 / (331.5 + (0.6 * temperature));
 	// compute the distance
@@ -135,3 +224,5 @@ float ExternalData::readDistance(int sensor, float temperature) {
 	}
 	return distance;
 }
+
+

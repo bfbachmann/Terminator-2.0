@@ -10,6 +10,7 @@
 #define robot_h
 
 #include <Servo.h>
+#include <limits.h>
 
 class AI;
 class ExternalData;
@@ -44,8 +45,24 @@ typedef struct {
 	float y;
 	float heading;
 	float v;
-	float w;    
+	float w;
+  float dt;
+  uint8_t  l_PWM;
+  uint8_t  r_PWM;
 } State;
+
+/*
+ * enum to define possible modes.
+ */
+typedef enum {
+	FreeDrive,
+	FollowLine
+} Mode;
+
+typedef enum {
+	Left,
+	Right
+} Direction;
 
 
 class AI {
@@ -62,7 +79,7 @@ public:
 	* Control control:             A Control object with which the AI will
 	*                              execute decisions that are made.
 	*/
-	AI(ExternalData external_data, Control control);
+	AI(ExternalData *externalData, Control *control);
 	~AI();
     
 	/*
@@ -72,7 +89,29 @@ public:
 	* This function will gather the necessary data, and then
 	* execute the appropriate action.
 	*/
-	void decide();
+	void decide(State *state);
+
+private:
+
+/*
+ * Pan the servo motor from 0 to 180 degrees and return the angle (int radians)
+ * corresponding to the furthest distance read (0 degrees being 
+ * left of forward relative to heading of robot, 180 being right).
+ */
+  Direction sweep();
+	
+	/*
+	 * void updateMode()
+	 * 
+	 * Update the mode, and take any action necessary to react to the
+	 * mode changing.
+	 */
+	void updateMode();
+
+#pragma mark Private instance variables
+	Control *_control;
+	ExternalData *_externalData;
+	Mode _currentMode;
 };
 
 /*
@@ -100,7 +139,7 @@ public:
     * uint8_t rangeFinder          The pin to which the servo controlling the
     *                              range finder is connected.
 	*/
-	Control(uint8_t in1, uint8_t in2, uint8_t in3, uint8_t in4, uint8_t rangeFinder);
+	Control(uint8_t rangeFinder);
 	~Control();
     
     /*
@@ -118,26 +157,7 @@ public:
      * should be collected.
      */
     void setExternalData(ExternalData *externalData);
-    
-	/*
-	* void go(float velocity, float angular_velocity)
-	*
-	* Causes the robot to proceed at the specified velocity and
-	* angular velocity.
-	*
-	* Parameters:
-	* float velocity:  the velocity at which the robot should proceed
-	*                  in m/s.
-	* float angular_velocity:  the angular velocity at which the robot
-	*                          should proceed in rad/sec. Defaults to
-	*                          0, indicating no turning.
-	* Returns:
-	* boolean:                 If the robot is within a sufficiently small
-	*                          threshold of the requested destination, the go
-	*                          function will return a boolean true.
-	*/
-	bool go(float velocity, float angular_velocity = 0);
-    
+        
 	/*
 	* go(Vector direction, bool stopAtDestination)
 	*
@@ -159,7 +179,7 @@ public:
 	*                          threshold of the requested destination, the go
 	*                          function will return a boolean true.
 	*/
-	bool go(State *state, Vector *destination, bool stopAtDestination);
+	void go(State *state, Vector *destination, bool stopAtDestination);
     
 	/*
 	* void stop()
@@ -199,6 +219,22 @@ public:
 	*                 180
 	*/
 	void orientRangeFinder(int orientation);
+
+/*
+ * Decrease the speed the robot is moving at by a small amount.
+ */
+  void slowDown(State *state);
+
+/*
+ * Attached the servo motor to its designated input pin.
+ */
+  void attachRangeFinder();
+	
+	/*
+	 * Send a byte to the slave Arduino to indicate that it should 
+	 * take some action.
+	 */
+	void sendByteToSlave(char byte);
     
 private:
 	/*	void wheelControl(float right_velocity, float left_velocity)
@@ -219,7 +255,7 @@ private:
 	*						  second, to be applied to the right wheel. Similar
 	*						  conditions to the left_w parameter.
 	*/
-	void wheelControl(float left_w, float right_w);
+	void wheelControl(State * state);
 
 	/*	void calculateOdometry(State * state, float left_w, float right_w)
 	*
@@ -253,16 +289,25 @@ private:
 	*					to use in calculating state changes during a time step.
 	*/	
 	float wheelVelocity(float w, float v, int wheel);
+ 
+public:
+ /*	void followLine(float *reflectivities)	
+	*
+	*	Completes one time step in the control flow of a line-following behaviour.
+	*	
+	*	Parameters:		
+	*	State *state:	 state variable representing the action to be taken by
+	* 							 the robot.
+	*/	
+  void followLine(State *state);
     
+private:
 #pragma mark Pin instance variables
-    uint8_t in1;
-    uint8_t in2;
-    uint8_t in3;
-    uint8_t in4;
     uint8_t rangeFinderPin;
     
 #pragma mark Servo instance variables
     Servo rangeFinderServo;
+		int _currentRangeFinderOrientation;
 };
 
 /*
@@ -282,23 +327,21 @@ public:
 	* must be called before any other functions.
 	*
 	* Parameters:
-	* int temperaturePin:              the pin to which the temperature sensor's Vout pin
-	*                                  is connected.
 	* int numberOfUltrasonicSensors:   the number of ultrasonic sensors that are
 	*                                  available to the robot.
 	* uint8_t** ultrasonicSensors:     pins to which each ultrasonic sensor is connected.
 	*                                  The array should be formatted as follows, indexed
-	*                                  as ultrasonicSensors[index][index2]:
+	*                                  as ultrasonicSensors[index]:
 	* 
-	*          index   index2  value
-	*          0       0       pin to which the trigger pin of the 0th ultrasonic
-	*                          sensor is connected.
-	*          0       1       pin to which the echo pin of the 0th ultrasonic sensor
-	*                          is connected.
-	*          1       0       pin to which the trigger pin of the 1st ultrasonic
-	*                          sensor is connected.
-	*          1       1       pin to which the echo pin of the 0th ultrasonic sensor
-	*                          is connected.
+	*          index   value
+	*          0       pin to which the trigger pin of the 0th ultrasonic
+	*                  sensor is connected.
+	*          1       pin to which the echo pin of the 0th ultrasonic sensor
+	*                  is connected.
+	*          2       pin to which the trigger pin of the 1st ultrasonic
+	*                  sensor is connected.
+	*          3       pin to which the echo pin of the 1st ultrasonic sensor
+	*                  is connected.
 	*
 	*                                   And so on.
     * int numberOfReflectivitySensors:  The number of reflectivity sensors that are
@@ -306,7 +349,7 @@ public:
     * uint8_t* reflectivitySensors:     Pins to which the reflectivity sensors are
     *                                   connected.
 	*/
-	ExternalData(int temperaturePin, int numberOfUltrasonicSensors, uint8_t** ultrasonicSensors, int numberOfReflectivitySensors, uint8_t* reflectivitySensors);
+	ExternalData(int numberOfUltrasonicSensors, uint8_t ultrasonicSensors[], int numberOfReflectivitySensors, uint8_t reflectivitySensors[], int mode_pin);
 	~ExternalData();
   
 	/*
@@ -349,7 +392,7 @@ public:
 	* bool fresh:  		 if true, the cache will be ignored and fresh data will be
 	*              		 read from the appropriate sensors.
 	*/
-	float distance(int sensor, bool fresh = false);
+	float distance(int sensor, bool fresh = false, int maxChange = INT_MAX);
     
 	/*
 	* float* distances(bool fresh)
@@ -375,40 +418,63 @@ public:
 	float* distances(bool fresh = false);
     
 	/*
-	* void reflectivity(bool fresh)
+	* float reflectivity(int sensor, bool fresh)
 	*
 	* Returns the reflectivities seen by the reflective optical sensors. This function
 	* may perform caching.
 	* 
-	*
 	* Parameters:
-    * int sensor:  Reflectivity sensor from which value should be read.
+	* int sensor:  the sensor to read reflectivity from 
+	* bool fresh:  if true, the cache will be ignored and fresh data will be
+	*              read from the appropriate sensors. Defaults to false.
+	*/
+	float reflectivity(int sensor, bool fresh = false);
+	
+	/*
+	* float *reflectivities(bool fresh)
+	*
+	* Returns the reflectivities seen by the reflective optical sensors. This function
+	* may perform caching.
+	* 
+	* Parameters:
 	* bool fresh:  if true, the cache will be ignored and fresh data will be
 	*              read from the appropriate sensors.
 	*/
-	float reflectivity(int sensor, bool fresh = false);
+	float *reflectivities(bool fresh = false);
+
+ /*
+  * Get the mode the robot is currently in by reading from a push-button
+  * Returns 0 if the button is pressed corresponding to LINE_MODE for 
+  * following a line on the ground, or returns 1 if the button is not 
+  * pressed curresponding to FREE_DRIVE_MODE for driving around freely.
+  */
+  Mode mode();
+
+  float read_temperature();
+  float readDistance(int sensor, float temperature);
+
  
 private:
 #pragma mark Pin variables
-	int temperaturePin;
-	int numberOfUltrasonicSensors;
-	uint8_t **ultrasonicSensorPins;
-    int numberOfReflectivitySensors;
-    uint8_t *reflectivitySensorPins;
+  int _modePin;
+	int _numberOfUltrasonicSensors;
+	uint8_t* _ultrasonicSensorPins;
+  int _numberOfReflectivitySensors;
+  uint8_t* _reflectivitySensorPins;
     
 #pragma mark Caching variables
-	float lastTemperature;
-	float *lastDistances;
-	float *lastReflectivities;
+	float _lastTemperature;
+	float *_lastDistances;
+	float *_lastReflectivities;
     
-	bool temperatureCached;
-	bool *distancesCached;
-	bool *reflectivitiesCached;
+	unsigned long _lastTemperatureTimestamp;
+	bool *_distancesCached;
+	bool *_reflectivitiesCached;
     
 #pragma mark Data acquisition functions
-	float readTemperature();
-	void pulseOut(uint8_t pin, int microseconds);
-	float readDistance(int sensor, float temperature);
+	float _readTemperature();
+	void _pulseOut(uint8_t pin, int microseconds);
+	float _readDistance(int sensor, float temperature);
 };
 
 #endif /* robot_h */
