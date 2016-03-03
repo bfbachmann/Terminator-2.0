@@ -61,20 +61,18 @@ void setup() {
  
 	state.x = 0;
 	state.y = 0;
-	state.v = 0;
+	state.v = 61;
 	state.w = 0;
 	state.dt = 1;
 	state.heading = M_PI/2;
 	state.l_PWM = 0;
 	state.r_PWM = 0;
-	destination.x = 10;
-	destination.y = 100;
+	destination.x = 100;
+	destination.y = 0;
 	
 	control.stop();
 
- destination.x = -80;
- destination.y = -100;
- control.go(&state, &destination, true);
+        control.go(&state, &destination, true);
 }
 
 void loop() {
