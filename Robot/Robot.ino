@@ -67,9 +67,10 @@ void setup() {
 	state.r_PWM = 0;
 	destination.x = 0;
 	destination.y = 300;
-//  control.go(&state, &destination, true);
-	
+  	
 	control.stop();
+//  control.go(&state, &destination, true);
+
 }
 
 void loop() {

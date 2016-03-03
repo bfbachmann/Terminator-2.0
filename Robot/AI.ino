@@ -147,20 +147,20 @@ Direction AI::sweep() {
 Vector *AI::sweep(uint8_t offset) {
   int i;
   Vector *avoidanceVector = (Vector *) malloc(sizeof(Vector));
-  avoidanceVector.x = 0;
-  avoidanceVector.y = 0;
+  avoidanceVector->x = 0;
+  avoidanceVector->y = 0;
   float reading;
   
   for (i = 0; i <= 180; i += offset) {
-     _control.orientRangeFinder(180-i);
+     _control.orientRangeFinder(i);
      reading = _externalData.distance(0, true);
-     avoidanceVector.x += reading*cos(i*PI/180);
-     avoidanceVector.y += reading*sin(i*PI/180);
+     avoidanceVector->x += reading*cos(i*PI/180);
+     avoidanceVector->y += reading*sin(i*PI/180);
   }
 
   for (i = 180 + offset; i < 360; i += offset) {
-     avoidanceVector.x += reading*cos(i*PI/180);
-     avoidanceVector.y += reading*sin(i*PI/180);
+     avoidanceVector->x += reading*cos(i*PI/180);
+     avoidanceVector->y += reading*sin(i*PI/180);
   }
 
   return avoidanceVector;
