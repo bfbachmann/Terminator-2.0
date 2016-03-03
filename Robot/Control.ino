@@ -90,11 +90,11 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 /*  Applies PWM signal to wheel motors. This function will require access
 *  to pin numbers.
 */
-void Control::wheelControl(State * state) {
-	digitalWrite(M1, HIGH); 
-	digitalWrite(M2, HIGH);
-  analogWrite(E2, state->l_PWM*0.99);
-	analogWrite(E1, state->r_PWM); 
+void Control::wheelControl(State * state, bool left, bool right) {
+        digitalWrite(M1, right ? HIGH : LOW); 
+        digitalWrite(M2, left ? HIGH : LOW);
+        analogWrite(E1, state->r_PWM); 
+        analogWrite(E2, state->l_PWM);
 }
 
 void Control::adjustHeading(State * state, Vector * destination) {

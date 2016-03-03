@@ -76,40 +76,12 @@ void setup() {
 }
 
 void loop() {
+  
 #ifdef DEBUG
-	Mode mode = externalData.mode();
-
-	if (mode == FreeDrive) {
-		Serial.println("Free drive");
-	} else if (mode == FollowLine) {
-		Serial.println("Follow line");
-	} else {
-		Serial.println("Invaid mode");
-	}
-
+  Serial.print("Mode: ");
+  Serial.println(externalData.mode());
 #endif
-	//
-	// Serial.print("Distances:\t");
-	// Serial.print(externalData.distance(0));
-	// Serial.print('\t');
-	// Serial.println(externalData.distance(1));
-	//
-	// Serial.print("Temperature:\t");
-	// Serial.println(externalData.temperature());
-	//
-	// delay(500);
-	
-	// Serial.print("Reflectivities:\t");
-	// Serial.print(externalData.reflectivity(0));
-	// Serial.print('\t');
-	// Serial.print(externalData.reflectivity(1));
-	// Serial.print('\t');
-	// Serial.print(externalData.reflectivity(2));
-	// Serial.print('\t');
-	// Serial.print(externalData.reflectivity(3));
-	// Serial.print('\n');
-	
-	// delay(500);
-		
+
 	ai.decide(&state);
+
 }

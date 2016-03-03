@@ -14,6 +14,7 @@
 
 // max speed in cm/s
 #define MAX_SPEED 61
+#define DEBUG 1
 
 class AI;
 class ExternalData;

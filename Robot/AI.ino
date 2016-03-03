@@ -79,7 +79,7 @@ void AI::decide(State *state) {
     timeSinceLastRandomSweep++;
 #ifdef DEBUG
     Serial.print("Time since last sweep: ");
-    Serial.print(timeSinceLastRandomSweep);
+    Serial.println(timeSinceLastRandomSweep);
 #endif
     
     if (straightAheadDistance < FREE_DRIVE_HALT_DISTANCE) {
@@ -113,19 +113,23 @@ void AI::decide(State *state) {
 #ifdef RANDOM_SWEEP
       if (timeSinceLastRandomSweep > RANDOM_SWEEP_DELAY_CYCLES) {
         timeSinceLastRandomSweep = 0;
+#ifdef DEBUG
         Serial.println("Doing random sweep");
-        if (sweep() == Right) {
+#endif 
+        Vector *avoidanceVector = sweep(36);
+
+        shortTermGoal.x = avoidanceVector->x;
+        shortTermGoal.y = avoidanceVector->y;
+        free(avoidanceVector);
+
 #ifdef DEBUG
-          Serial.println("Turning right to avoid object");
+       Serial.print("Avoidance vector x: ");
+       Serial.println(avoidanceVector->x);
+       Serial.print("Avoidance vector y: ");
+       Serial.println(avoidanceVector->y);
 #endif
-          shortTermGoal.x = 1.0;
-        } else {
-#ifdef DEBUG
-          Serial.println("Turning left to avoid object");
-#endif
-          shortTermGoal.x = -1.0;
-        }
-        shortTermGoal.y = 2;
+
+      
       }
 #else
       shortTermGoal.x = 0;
@@ -184,10 +188,6 @@ Vector *AI::sweep(uint8_t offset) {
 
 void AI::updateMode() {
   Mode mode = _externalData->mode();
-	
-//	if (mode != _currentMode) {
-//		 we have changed modes
-//	}
 	
 	_currentMode = mode;
 }

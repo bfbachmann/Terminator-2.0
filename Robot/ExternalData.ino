@@ -153,6 +153,7 @@ Mode ExternalData::mode() {
 #pragma mark Private functions
         
 float ExternalData::_readTemperature() {
+  return 20.0;
 	// request the temperature from the slave
 #ifdef DEBUG
 	Serial.println("Transmitting command");
