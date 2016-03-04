@@ -158,8 +158,8 @@ void Control::slowDown(State *state) {
 		state->v = 20;
 	}
 	
-	Serial.print("New velocity: ");
-	Serial.println(state->v);
+	// Serial.print("New velocity: ");
+	// Serial.println(state->v);
 	
 	Vector destination;
 	destination.x = 0;

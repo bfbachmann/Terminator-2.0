@@ -14,6 +14,7 @@ AI::AI(ExternalData *externalData, Control *control) {
 	_externalData = externalData;
 	_control = control;
  timeSinceLastRandomSweep = 0;
+ _currentMode = Uninitialized;
 }
 
 

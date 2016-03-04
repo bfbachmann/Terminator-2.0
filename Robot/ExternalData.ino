@@ -52,7 +52,7 @@ void ExternalData::initializePins() {
 }
 
 void ExternalData::clearCache() {
-    _lastTemperatureTimestamp = 0;
+    // _lastTemperatureTimestamp = 0;
     
     int i;
     for (i = 0; i < _numberOfUltrasonicSensors; i++) {
@@ -67,9 +67,9 @@ void ExternalData::clearCache() {
 #pragma mark Public data acquisition functions
 
 float ExternalData::temperature(bool fresh) {
-    if (!fresh && _lastTemperatureTimestamp > 0) {
+    if (fresh != true && _lastTemperatureTimestamp > 0) {
 			// if our last reading is less than two seconds old, return it
-        if ((_lastTemperatureTimestamp + TEMPERATURE_CACHE_AGE) > millis()) {
+        if (_lastTemperatureTimestamp > millis()) {
             return _lastTemperature;
         }
     }
@@ -77,10 +77,10 @@ float ExternalData::temperature(bool fresh) {
 		float newTemperature = _readTemperature();
 		
 		if (newTemperature != INFINITY) {
-			Serial.print("Valid temperature recieved: ");
-			Serial.println(newTemperature);
+			// Serial.print("Valid temperature recieved: ");
+			// Serial.println(newTemperature);
 	    _lastTemperature = newTemperature;
-	    _lastTemperatureTimestamp = millis();
+	    _lastTemperatureTimestamp = millis() + TEMPERATURE_CACHE_AGE;
 		}
     
     return _lastTemperature;
@@ -153,7 +153,7 @@ Mode ExternalData::mode() {
 float ExternalData::_readTemperature() {	
 	// request one byte from slave
 	unsigned int timeout = millis() + 10;
-//	Wire.requestFrom(WIRE_DEVICE, 1);
+	Wire.requestFrom(WIRE_TEMP_DEVICE, 1);
 	
 	char receivedByte = '\n';
 	
@@ -183,6 +183,9 @@ float ExternalData::_readTemperature() {
 	Serial.print("Read voltage ");
 	Serial.println(voltage);
 	*/
+	
+	// Serial.print("Recieved voltage from slave: ");
+	// Serial.println(voltage);
 
 	/*scale it, taking into account the arduino's return range and the sensor's specs*/
 	return ((float)voltage * 500.0) / 1023.0;

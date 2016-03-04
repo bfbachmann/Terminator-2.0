@@ -19,6 +19,7 @@
 // address of the slave arduino we care about on the wire bus
 #define WIRE_DEVICE_1 8
 #define WIRE_DEVICE_2 9
+#define WIRE_TEMP_DEVICE 8
 
 // minimum and maximum distances to be read from the ultrasonic sensors, in cm
 #define DIST_MAX 100
@@ -68,7 +69,8 @@ typedef struct {
  */
 typedef enum {
 	FreeDrive,
-	FollowLine
+	FollowLine,
+	Uninitialized
 } Mode;
 
 typedef enum {

@@ -48,15 +48,14 @@ State state;
 Vector destination;
 
 void setup() {
-#ifdef DEBUG
-	Serial.begin(9600);
-#endif
+	// Serial.begin(9600);
 	Wire.begin();
 	
 	externalData.initializePins();
 	control.attachRangeFinder();
 	control.initializePins();
 	
+	delay(500);
 	control.sendByteToSlave('k');
 	delay(1500);
  
