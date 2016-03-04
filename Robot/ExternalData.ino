@@ -153,15 +153,20 @@ Mode ExternalData::mode() {
 #pragma mark Private functions
         
 float ExternalData::_readTemperature() {
+  return 20.0;
 	// request the temperature from the slave
+#ifdef DEBUG
 	Serial.println("Transmitting command");
+#endif
 	// delay(50);
 	Wire.beginTransmission(WIRE_DEVICE);
 	Wire.write('t');
 	Wire.endTransmission();
 	
 	// request one byte from slave
+#ifdef DEBUG
 	Serial.println("Requesting response");
+#endif
 	unsigned int timeout = millis() + 10;
 	Wire.requestFrom(WIRE_DEVICE, 1);
 	
@@ -172,13 +177,17 @@ float ExternalData::_readTemperature() {
 		
 		while (Wire.available() > 0) {
 			receivedByte = Wire.read();
+#ifdef DEBUG
 			Serial.println(receivedByte);
+#endif
 			timeout = 0;
 		}
 	}
 	
 	if (receivedByte == '\n') {
+#ifdef DEBUG
 		Serial.println("Wire not available. Aborting.");
+#endif
 		return INFINITY; // if something goes wrong, return infinity
 	}
 	

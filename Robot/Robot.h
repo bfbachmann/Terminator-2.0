@@ -12,6 +12,10 @@
 #include <Servo.h>
 #include <limits.h>
 
+// max speed in cm/s
+#define MAX_SPEED 61
+#define DEBUG 1
+
 class AI;
 class ExternalData;
 class Control;
@@ -61,7 +65,8 @@ typedef enum {
 
 typedef enum {
 	Left,
-	Right
+	Right,
+  Straight
 } Direction;
 
 
@@ -94,11 +99,20 @@ public:
 private:
 
 /*
- * Pan the servo motor from 0 to 180 degrees and return the angle (int radians)
+ * Pan the servo motor from 0 to 180 
+ * and return the direction corresponding to the best direction 
  * corresponding to the furthest distance read (0 degrees being 
  * left of forward relative to heading of robot, 180 being right).
  */
   Direction sweep();
+
+  /*
+   * Pan the servo motor from 0 to 180 in offset increments
+   * and return the direction corresponding to the best direction 
+   * corresponding to the furthest distance read (0 degrees being 
+   * left of forward relative to heading of robot, 180 being right).
+   */
+  Vector *sweep(uint8_t offset);
 	
 	/*
 	 * void updateMode()
@@ -175,10 +189,6 @@ public:
 	*                          If false, the robot will continue in the
 	*                          specified direction until instructed otherwise.
 	*
-	* Returns:
-	* boolean:                 If the robot is within a sufficiently small
-	*                          threshold of the requested destination, the go
-	*                          function will return a boolean true.
 	*/
 	void go(State *state, Vector *destination, bool stopAtDestination);
     
@@ -236,28 +246,28 @@ public:
 	 * take some action.
 	 */
 	void sendByteToSlave(char byte);
-
-  /*  void wheelControl(float right_velocity, float left_velocity)
-  *
-  * Applies PWM signal to wheel motors. Must convert velocities into
-  *   PWM appropriate signal (integer from 0-255)
-  * 
-  * Parameters:
-  * float left_w:     An angular velocity, specified in radians
-  *             per second, to be applied to the left wheel.
-  *             This function will assume velocities requested
-  *             are within the operating range of the motor as 
-  *             specified in the datasheet. This function must 
-  *             convert the angular velocity to some integer 
-  *             between 0 & 255 using a linear model.
-  *
-  * float left_w:     An angular velocity, specified in radians per
-  *             second, to be applied to the right wheel. Similar
-  *             conditions to the left_w parameter.
-  */
-  void wheelControl(State * state);
-
+    
 private:
+	/*	void wheelControl(float right_velocity, float left_velocity)
+	*
+	*	Applies PWM signal to wheel motors. Must convert velocities into
+	*   PWM appropriate signal (integer from 0-255)
+	*	
+	*	Parameters:
+	*	float left_w:		  An angular velocity, specified in radians
+	*						  per second, to be applied to the left wheel.
+	*						  This function will assume velocities requested
+	*						  are within the operating range of the motor as 
+	*						  specified in the datasheet. This function must 
+	*						  convert the angular velocity to some integer 
+	*						  between 0 & 255 using a linear model.
+	*
+	*	float left_w:		  An angular velocity, specified in radians per
+	*						  second, to be applied to the right wheel. Similar
+	*						  conditions to the left_w parameter.
+	*/
+	void wheelControl(State * state, bool left, bool right);
+
 	/*	void calculateOdometry(State * state, float left_w, float right_w)
 	*
 	*	Calculates distance travelled in an individual time step and updates the 
@@ -290,6 +300,18 @@ private:
 	*					to use in calculating state changes during a time step.
 	*/	
 	float wheelVelocity(float w, float v, int wheel);
+
+        /*	void adjustHeading(State * state, Vector * destination);	
+	*
+	*	Caculates an error in its heading, and stabilizes it to zero by adjusting wheel speeds.
+	*	
+	*	Parameters:		
+	*	State * state:          The state structure. Pre-loaded is a current heading. 
+	*				
+	*	Vector * destination:	A vector structure with a desired destination.
+	*		
+	*/	
+        void adjustHeading(State * state, Vector * destination);
  
 public:
  /*	void followLine(float *reflectivities)	
@@ -457,6 +479,7 @@ public:
  
 private:
 #pragma mark Pin variables
+	int _temperaturePin;
   int _modePin;
 	int _numberOfUltrasonicSensors;
 	uint8_t* _ultrasonicSensorPins;

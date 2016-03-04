@@ -50,7 +50,9 @@ State state;
 Vector destination;
 
 void setup() {
+#ifdef DEBUG
 	Serial.begin(9600);
+#endif
 	Wire.begin();
 	
 	externalData.initializePins();
@@ -59,56 +61,31 @@ void setup() {
  
 	state.x = 0;
 	state.y = 0;
-	state.v = 0;
+	state.v = 61;
 	state.w = 0;
 	state.dt = 1;
 	state.heading = M_PI/2;
 	state.l_PWM = 0;
 	state.r_PWM = 0;
-	destination.x = 10;
-	destination.y = 100;
-	
+	destination.x = 0;
+	destination.y = 300;
+  	
 	control.stop();
 
- destination.x = -80;
- destination.y = -100;
- control.go(&state, &destination, true);
 }
 
 void loop() {
+  
 	externalData.clearCache();
-	//
 	Mode mode = externalData.mode();
 
 	if (mode == FreeDrive) {
 		Serial.println("Free drive");
 	} else if (mode == FollowLine) {
-		//Serial.println("Follow line");
+		Serial.println("Follow line");
 	} else {
 		Serial.println("Invaid mode");
 	}
-	//
-	// Serial.print("Distances:\t");
-	// Serial.print(externalData.distance(0));
-	// Serial.print('\t');
-	// Serial.println(externalData.distance(1));
-	//
-	// Serial.print("Temperature:\t");
-	// Serial.println(externalData.temperature());
-	//
-	// delay(500);
-	
-	// Serial.print("Reflectivities:\t");
-	// Serial.print(externalData.reflectivity(0));
-	// Serial.print('\t');
-	// Serial.print(externalData.reflectivity(1));
-	// Serial.print('\t');
-	// Serial.print(externalData.reflectivity(2));
-	// Serial.print('\t');
-	// Serial.print(externalData.reflectivity(3));
-	// Serial.print('\n');
-	
-	// delay(500);
 		
   ai.decide(&state);
 }
