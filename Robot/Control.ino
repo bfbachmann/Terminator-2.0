@@ -59,7 +59,7 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 	float factor = 8.0;
         
         /* Adjust heading */
-        adjustHeading(state, destination);
+        adjustHeading(state, destination, false);
         
 	/* Determine desired distance */
 	distance = sqrt(destination->x*destination->x + destination->y*destination->y);
@@ -68,22 +68,15 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 	state->l_PWM = state->v / MAX_SPEED * 255;
 	state->r_PWM = state->v / MAX_SPEED * 255;
 	wheelControl(state, true, true);
-#ifdef DEBUG
-	Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
-#endif
         
 	/* Drive straight  */
-	while(distance > 2) {
-		distance = distance - (factor * MAX_RPM / 60000 * 2 * R * M_PI/2);
-		delay(10);
-#ifdef DEBUG
-		Serial.println(distance);
-		Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
-#endif
-	}
-        
-	if(stopAtDestination)
-		stop();
+        if(stopAtDestination) {
+      	    while(distance > 2) {
+      		distance = distance - (factor * MAX_RPM / 60000 * 2 * R * M_PI/2);
+      		delay(10);
+      	    }
+            stop();
+        }
         
 }
 
@@ -94,15 +87,17 @@ void Control::wheelControl(State * state, bool left, bool right) {
         digitalWrite(M1, right ? HIGH : LOW); 
         digitalWrite(M2, left ? HIGH : LOW);
         analogWrite(E1, state->r_PWM); 
-        analogWrite(E2, state->l_PWM);
+        analogWrite(E2, 0.98*state->l_PWM);
 }
 
-void Control::adjustHeading(State * state, Vector * destination) {
+void Control::adjustHeading(State * state, Vector * destination, bool hard) {
         float desired_heading, error, arc, MAX_RPM;
 	MAX_RPM = 160.0;
 	float factor = 10.0;
+        state->heading = M_PI/2;
         
-	arc = 3.2 * MAX_RPM / 60000 * 2 * M_PI * R * 2;
+	arc = 4.6 * MAX_RPM / 60000 * 2 * M_PI * R * 2;
+        arc = hard ? arc : arc / 2;
         
 	/* Determine desired heading, velocity and angular velocity */
 	desired_heading = atan2(destination->y, destination->x); 
@@ -112,9 +107,16 @@ void Control::adjustHeading(State * state, Vector * destination) {
         
 	/* Correct heading */
 	while(abs(error) > 0.05) {
-		state->l_PWM = 255;
-		state->r_PWM = 255;
-		wheelControl(state, error < 0, error > 0);
+                if(hard) {
+                    state->l_PWM = 255;
+		    state->r_PWM = 255;
+		    wheelControl(state, error < 0, error > 0);
+                }
+                else { 
+                    state->l_PWM = error < 0 ? 0 : 255;
+                    state->r_PWM = error > 0 ? 0 : 255;
+                    wheelControl(state, true, true); 
+                }
 		delay(10);
 		state->heading = (error > 0) ? state->heading - arc/L : state->heading + arc/L;
 		error = state->heading - desired_heading;
@@ -142,9 +144,7 @@ void Control::orientRangeFinder(int orientation) {
 *  Completes one time step in the control flow of a line-following behaviour.
 */
 void Control::followLine(State * state) {
-
 	const float factor = 2;
-    
 	digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
 	analogWrite(E1, factor*state->l_PWM); analogWrite(E2, factor*state->r_PWM);
 }
@@ -173,9 +173,23 @@ void Control::slowDown(State *state) {
 	//decrement current wheel speed by some about and write this new value back to the wheels
 }
 
-void Control::sendByteToSlave(char byte) {
-	Wire.beginTransmission(WIRE_DEVICE);
-	Wire.write(byte);
+void Control::sendByteToSlave(char command) {
+	if (command == _last_command) {
+		if (command == 'b' || command == 'd') {
+			return;
+		}
+	}
+	
+	_last_command = command;
+	
+	// write to the first device
+	Wire.beginTransmission(WIRE_DEVICE_1);
+	Wire.write(command);
+	Wire.endTransmission();
+	
+	// write to the second device
+	Wire.beginTransmission(WIRE_DEVICE_2);
+	Wire.write(command);
 	Wire.endTransmission();
 }
 

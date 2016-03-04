@@ -16,6 +16,14 @@
 #define MAX_SPEED 61
 #define DEBUG 1
 
+// address of the slave arduino we care about on the wire bus
+#define WIRE_DEVICE_1 8
+#define WIRE_DEVICE_2 9
+
+// minimum and maximum distances to be read from the ultrasonic sensors, in cm
+#define DIST_MAX 100
+#define DIST_MIN 0
+
 class AI;
 class ExternalData;
 class Control;
@@ -66,7 +74,7 @@ typedef enum {
 typedef enum {
 	Left,
 	Right,
-  Straight
+        Straight
 } Direction;
 
 
@@ -231,15 +239,15 @@ public:
 	*/
 	void orientRangeFinder(int orientation);
 
-/*
- * Decrease the speed the robot is moving at by a small amount.
- */
-  void slowDown(State *state);
-
-/*
- * Attached the servo motor to its designated input pin.
- */
-  void attachRangeFinder();
+        /*
+         * Decrease the speed the robot is moving at by a small amount.
+         */
+          void slowDown(State *state);
+      
+        /*
+         * Attached the servo motor to its designated input pin.
+         */
+        void attachRangeFinder();
 	
 	/*
 	 * Send a byte to the slave Arduino to indicate that it should 
@@ -247,6 +255,17 @@ public:
 	 */
 	void sendByteToSlave(char byte);
 
+        /*	void adjustHeading(State * state, Vector * destination);	
+	*
+	*	Caculates an error in its heading, and stabilizes it to zero by adjusting wheel speeds.
+	*	
+	*	Parameters:		
+	*	State * state:          The state structure. Pre-loaded is a current heading. 
+	*				
+	*	Vector * destination:	A vector structure with a desired destination.
+	*		
+	*/	
+        void adjustHeading(State * state, Vector * destination, bool hard);
     
 private:
 	/*	void wheelControl(float right_velocity, float left_velocity)
@@ -301,18 +320,6 @@ private:
 	*					to use in calculating state changes during a time step.
 	*/	
 	float wheelVelocity(float w, float v, int wheel);
-
-        /*	void adjustHeading(State * state, Vector * destination);	
-	*
-	*	Caculates an error in its heading, and stabilizes it to zero by adjusting wheel speeds.
-	*	
-	*	Parameters:		
-	*	State * state:          The state structure. Pre-loaded is a current heading. 
-	*				
-	*	Vector * destination:	A vector structure with a desired destination.
-	*		
-	*/	
-        void adjustHeading(State * state, Vector * destination);
  
 public:
  /*	void followLine(float *reflectivities)	
@@ -332,6 +339,9 @@ private:
 #pragma mark Servo instance variables
     Servo rangeFinderServo;
 		int _currentRangeFinderOrientation;
+		
+#pragma mark Slave command instance variables
+		char _last_command;
 };
 
 /*

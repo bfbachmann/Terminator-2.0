@@ -1,6 +1,4 @@
-// minimum and maximum distances to be read from the ultrasonic sensors, in cm
-#define DIST_MAX 200
-#define DIST_MIN 0
+#include "Robot.h"
 
 // how long a temperature value is considered fresh in milliseconds 
 #define TEMPERATURE_CACHE_AGE 2000
@@ -152,23 +150,10 @@ Mode ExternalData::mode() {
 
 #pragma mark Private functions
         
-float ExternalData::_readTemperature() {
-  return 20.0;
-	// request the temperature from the slave
-#ifdef DEBUG
-	Serial.println("Transmitting command");
-#endif
-	// delay(50);
-	Wire.beginTransmission(WIRE_DEVICE);
-	Wire.write('t');
-	Wire.endTransmission();
-	
+float ExternalData::_readTemperature() {	
 	// request one byte from slave
-#ifdef DEBUG
-	Serial.println("Requesting response");
-#endif
 	unsigned int timeout = millis() + 10;
-	Wire.requestFrom(WIRE_DEVICE, 1);
+//	Wire.requestFrom(WIRE_DEVICE, 1);
 	
 	char receivedByte = '\n';
 	
@@ -177,17 +162,12 @@ float ExternalData::_readTemperature() {
 		
 		while (Wire.available() > 0) {
 			receivedByte = Wire.read();
-#ifdef DEBUG
-			Serial.println(receivedByte);
-#endif
 			timeout = 0;
 		}
 	}
 	
 	if (receivedByte == '\n') {
-#ifdef DEBUG
-		Serial.println("Wire not available. Aborting.");
-#endif
+      		Serial.println("Wire not available. Aborting.");
 		return INFINITY; // if something goes wrong, return infinity
 	}
 	

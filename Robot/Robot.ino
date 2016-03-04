@@ -27,8 +27,6 @@
 #define REFLECTIVITY_SENSOR_3_PIN A1
 #define REFLECTIVITY_SENSOR_4_PIN A0 // rightmost sensor
 
-#define WIRE_DEVICE 8
-
 // variables required to initialize ExternalData
 uint8_t ultrasonicSensorPins[4] = {
 	DIST_SENSOR_0_TRIGGER_PIN, DIST_SENSOR_0_ECHO_PIN,
@@ -58,6 +56,9 @@ void setup() {
 	externalData.initializePins();
 	control.attachRangeFinder();
 	control.initializePins();
+	
+	control.sendByteToSlave('k');
+	delay(1500);
  
 	state.x = 0;
 	state.y = 0;
@@ -71,17 +72,23 @@ void setup() {
 	destination.y = 300;
   	
 	control.stop();
-//  control.go(&state, &destination, true);
-
 }
 
 void loop() {
-  
-//#ifdef DEBUG
-//  Serial.print("Mode: ");
-//  Serial.println(externalData.mode());
-//#endif
-//
-	ai.decide(&state);
 
+	externalData.clearCache();
+	
+#ifdef DEBUG
+	Mode mode = externalData.mode();
+
+	if (mode == FreeDrive) {
+		Serial.println("Free drive");
+	} else if (mode == FollowLine) {
+		Serial.println("Follow line");
+	} else {
+		Serial.println("Invaid mode");
+	}
+#endif
+		
+  ai.decide(&state);
 }
