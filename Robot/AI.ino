@@ -34,6 +34,10 @@ void AI::decide(State *state) {
 	
 	updateMode();
 
+  sweep(36);
+  delay(200);
+  return;
+  
 //if we are in line we we should just call control to follow line
   if (_currentMode == FollowLine) {
 		const int thresh = 100;
@@ -130,12 +134,13 @@ void AI::decide(State *state) {
 #endif
 
       
-      }
+      } else {
 #else
       shortTermGoal.x = 0;
 		  shortTermGoal.y = 10.0;
 #endif
       state->v = MAX_SPEED;
+      }
     }
 		
 		control.go(state, &shortTermGoal, false);
@@ -179,9 +184,17 @@ Vector *AI::sweep(uint8_t offset) {
   }
 
   for (i = 180 + offset; i < 360; i += offset) {
-     avoidanceVector->x += reading*cos(i*PI/180);
-     avoidanceVector->y += reading*sin(i*PI/180);
+     avoidanceVector->x += 200*cos(i*PI/180);
+     avoidanceVector->y += 200*sin(i*PI/180);
   }
+
+#ifdef DEBUG
+  Serial.print("X coordinate: ");
+  Serial.print(avoidanceVector->x);
+  Serial.print("\t\tY coordinate: ");
+  Serial.print(avoidanceVector->y);
+  Serial.println("\n");
+#endif DEBUG
 
   return avoidanceVector;
 }

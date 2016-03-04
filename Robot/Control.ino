@@ -129,15 +129,15 @@ void Control::adjustHeading(State * state, Vector * destination) {
 */
 void Control::orientRangeFinder(int orientation) {
 	if (_currentRangeFinderOrientation != orientation) {
-#ifdef DEBUG
-		Serial.println("Orienting range finder");
-#endif
+
 		rangeFinderServo.write(orientation);
 		// give the servo a chance to actually move - 3ms per degree moved
 		delay(SERVO_DELAY_PER_DEGREE * abs(_currentRangeFinderOrientation - orientation));
 		_currentRangeFinderOrientation = orientation;
 	}
 }
+
+
 /*
 *  Completes one time step in the control flow of a line-following behaviour.
 */
@@ -160,10 +160,12 @@ void Control::slowDown(State *state) {
 	if (state->v < 20) {
 		state->v = 20;
 	}
-	
+
+#ifdef DEBUG
 	Serial.print("New velocity: ");
 	Serial.println(state->v);
-	
+#endif
+
 	Vector destination;
 	destination.x = 0;
 	destination.y = 1;

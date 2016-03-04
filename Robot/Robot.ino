@@ -77,11 +77,11 @@ void setup() {
 
 void loop() {
   
-#ifdef DEBUG
-  Serial.print("Mode: ");
-  Serial.println(externalData.mode());
-#endif
-
+//#ifdef DEBUG
+//  Serial.print("Mode: ");
+//  Serial.println(externalData.mode());
+//#endif
+//
 	ai.decide(&state);
 
 }
