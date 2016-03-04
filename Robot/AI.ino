@@ -3,7 +3,7 @@
 #define RANDOM_SWEEP_DELAY_CYCLES 15
 #define RANDOM_SWEEP 1
 
-#define FREE_DRIVE_SLOW_DISTANCE 75
+#define FREE_DRIVE_SLOW_DISTANCE 55
 #define FREE_DRIVE_HALT_DISTANCE 15
 #define THRESH 300 
 
@@ -77,82 +77,48 @@ void AI::decide(State *state) {
 //if we are in free drive mode we need to look for nearby obstancles
 //and slow down or stop depending on how close they are
   else if (_currentMode == FreeDrive) {
-		_control->orientRangeFinder(90);
-    float straightAheadDistance = _externalData->distance(0, false, (0.5 * state->v));
-#ifdef DEBUG
-		Serial.print("Straight ahead distance: ");
-		Serial.println(straightAheadDistance);
-#endif
-    Vector shortTermGoal;
-    timeSinceLastRandomSweep++;
-#ifdef DEBUG
-    Serial.print("Time since last sweep: ");
-    Serial.println(timeSinceLastRandomSweep);
-#endif
-    
-    if (straightAheadDistance < FREE_DRIVE_HALT_DISTANCE) {
-			control.sendByteToSlave('h');
-      _control->stop();
-      shortTermGoal.y = 0.0;
-			if (sweep() == Right) {
-#ifdef DEBUG
-				Serial.println("Turning right to avoid object");
-#endif
-				control.sendByteToSlave('g');
-				shortTermGoal.x = 1.0;
-			} else {
-#ifdef DEBUG
-				Serial.println("Turning left to avoid object");
-#endif
-				control.sendByteToSlave('f');
-				shortTermGoal.x = -1.0;
-			}
-    }
-    else if (straightAheadDistance < FREE_DRIVE_SLOW_DISTANCE) {
-#ifdef DEBUG
-			Serial.println("Slowing");
-#endif
-			control.sendByteToSlave('d');
-      control.slowDown(state);
-			return;
-    }
-    else {
-#ifdef DEBUG
-			Serial.println("Careening");
-#endif
-      //check if we should do a random sweep
+        _control->orientRangeFinder(90);
+        float straightAheadDistance = _externalData->distance(0, false, (0.5 * state->v));
+        Vector shortTermGoal;
+        timeSinceLastRandomSweep++;
+        
+        if (straightAheadDistance < FREE_DRIVE_HALT_DISTANCE) {
+    			_control->stop();
+                        control.sendByteToSlave('h');
+                        shortTermGoal.y = 0.0;
+    			if (sweep() == Right) {
+    				control.sendByteToSlave('g');
+    				shortTermGoal.x = 1.0;
 
-#ifdef RANDOM_SWEEP
-      if (timeSinceLastRandomSweep > RANDOM_SWEEP_DELAY_CYCLES) {
-        timeSinceLastRandomSweep = 0;
-#ifdef DEBUG
-        Serial.println("Doing random sweep");
-#endif 
-				control.sendByteToSlave('c');
-        Vector *avoidanceVector = sweep(36);
-
-        shortTermGoal.x = avoidanceVector->x;
-        shortTermGoal.y = avoidanceVector->y;
-        free(avoidanceVector);
-
-#ifdef DEBUG
-       Serial.print("Avoidance vector x: ");
-       Serial.println(avoidanceVector->x);
-       Serial.print("Avoidance vector y: ");
-       Serial.println(avoidanceVector->y);
-#endif
-      } else { // we are just driving forward
-      	control.sendByteToSlave('b');
-      }
-#else
-			control.sendByteToSlave('b');
-      shortTermGoal.x = 0;
-		  shortTermGoal.y = 10.0;
-#endif
-      state->v = MAX_SPEED;
-    }
-		
-		control.go(state, &shortTermGoal, false);
+    			} else {
+    				control.sendByteToSlave('f');
+    				shortTermGoal.x = -1.0;
+    			}
+                        control.adjustHeading(state, &shortTermGoal, true);
+                        shortTermGoal = {0.0, 1.0};
+        }
+        else if (straightAheadDistance < FREE_DRIVE_SLOW_DISTANCE) {
+    			control.sendByteToSlave('d');
+                        control.slowDown(state);
+    			return;
+        }
+        
+        else {
+                //check if we should do a random sweep
+              if (timeSinceLastRandomSweep > RANDOM_SWEEP_DELAY_CYCLES) {
+                        timeSinceLastRandomSweep = 0;
+                        control.sendByteToSlave('c');
+                        Direction avoidanceDirection = sweep();
+                        if(avoidanceDirection == Left) { shortTermGoal = {-1,1.5}; }
+                        else if(avoidanceDirection == Right) { shortTermGoal = {1,1.5}; }
+                        else { shortTermGoal = {0,1}; }
+                } else { // we are just driving forward
+            	        control.sendByteToSlave('b');
+                        shortTermGoal = {0.0,1.0}; 
+                }
+        }	
+        state->v = MAX_SPEED;
+        control.go(state, &shortTermGoal, false);
   }
 }
 
@@ -164,18 +130,19 @@ void AI::decide(State *state) {
 Direction AI::sweep() {
   _control->orientRangeFinder(0);
 	float rightDistance = _externalData->distance(0, true);
+        delay(100);
 	
 	_control->orientRangeFinder(180);
 	float leftDistance = _externalData->distance(0, true);
 
-  if (leftDistance - rightDistance < 10) {
-    return Straight;
-  }
+        if (abs(leftDistance - rightDistance) < 10) {
+                return Straight;
+        }
 	else if (leftDistance > rightDistance) {
 		return Left;
 	} else {
 		return Right;
-	}
+	} 
 }
 
 Vector *AI::sweep(uint8_t offset) {
@@ -187,14 +154,15 @@ Vector *AI::sweep(uint8_t offset) {
   
   for (i = 0; i <= 180; i += offset) {
      _control->orientRangeFinder(i);
+     delay(200);
      reading = _externalData->distance(0, true);
      avoidanceVector->x += reading*cos(i*PI/180);
      avoidanceVector->y += reading*sin(i*PI/180);
   }
 
   for (i = 180 + offset; i < 360; i += offset) {
-     avoidanceVector->x += reading*cos(i*PI/180);
-     avoidanceVector->y += reading*sin(i*PI/180);
+     avoidanceVector->x += DIST_MAX*cos(i*PI/180);
+     avoidanceVector->y += DIST_MAX*sin(i*PI/180);
   }
 
   return avoidanceVector;

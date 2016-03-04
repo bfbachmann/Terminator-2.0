@@ -59,7 +59,7 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 	float factor = 8.0;
         
         /* Adjust heading */
-        adjustHeading(state, destination);
+        adjustHeading(state, destination, false);
         
 	/* Determine desired distance */
 	distance = sqrt(destination->x*destination->x + destination->y*destination->y);
@@ -68,22 +68,15 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 	state->l_PWM = state->v / MAX_SPEED * 255;
 	state->r_PWM = state->v / MAX_SPEED * 255;
 	wheelControl(state, true, true);
-#ifdef DEBUG
-	Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
-#endif
         
 	/* Drive straight  */
-	while(distance > 2) {
-		distance = distance - (factor * MAX_RPM / 60000 * 2 * R * M_PI/2);
-		delay(10);
-#ifdef DEBUG
-		Serial.println(distance);
-		Serial.print(state->l_PWM); Serial.print(","); Serial.println(state->l_PWM);
-#endif
-	}
-        
-	if(stopAtDestination)
-		stop();
+        if(stopAtDestination) {
+      	    while(distance > 2) {
+      		distance = distance - (factor * MAX_RPM / 60000 * 2 * R * M_PI/2);
+      		delay(10);
+      	    }
+            stop();
+        }
         
 }
 
@@ -94,15 +87,17 @@ void Control::wheelControl(State * state, bool left, bool right) {
         digitalWrite(M1, right ? HIGH : LOW); 
         digitalWrite(M2, left ? HIGH : LOW);
         analogWrite(E1, state->r_PWM); 
-        analogWrite(E2, state->l_PWM);
+        analogWrite(E2, 0.98*state->l_PWM);
 }
 
-void Control::adjustHeading(State * state, Vector * destination) {
+void Control::adjustHeading(State * state, Vector * destination, bool hard) {
         float desired_heading, error, arc, MAX_RPM;
 	MAX_RPM = 160.0;
 	float factor = 10.0;
+        state->heading = M_PI/2;
         
-	arc = 3.2 * MAX_RPM / 60000 * 2 * M_PI * R * 2;
+	arc = 4.6 * MAX_RPM / 60000 * 2 * M_PI * R * 2;
+        arc = hard ? arc : arc / 2;
         
 	/* Determine desired heading, velocity and angular velocity */
 	desired_heading = atan2(destination->y, destination->x); 
@@ -112,9 +107,16 @@ void Control::adjustHeading(State * state, Vector * destination) {
         
 	/* Correct heading */
 	while(abs(error) > 0.05) {
-		state->l_PWM = 255;
-		state->r_PWM = 255;
-		wheelControl(state, error < 0, error > 0);
+                if(hard) {
+                    state->l_PWM = 255;
+		    state->r_PWM = 255;
+		    wheelControl(state, error < 0, error > 0);
+                }
+                else { 
+                    state->l_PWM = error < 0 ? 0 : 255;
+                    state->r_PWM = error > 0 ? 0 : 255;
+                    wheelControl(state, true, true); 
+                }
 		delay(10);
 		state->heading = (error > 0) ? state->heading - arc/L : state->heading + arc/L;
 		error = state->heading - desired_heading;
@@ -129,9 +131,6 @@ void Control::adjustHeading(State * state, Vector * destination) {
 */
 void Control::orientRangeFinder(int orientation) {
 	if (_currentRangeFinderOrientation != orientation) {
-#ifdef DEBUG
-		Serial.println("Orienting range finder");
-#endif
 		rangeFinderServo.write(orientation);
 		// give the servo a chance to actually move - 3ms per degree moved
 		delay(SERVO_DELAY_PER_DEGREE * abs(_currentRangeFinderOrientation - orientation));
