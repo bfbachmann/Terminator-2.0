@@ -237,28 +237,27 @@ public:
 	 */
 	void sendByteToSlave(char byte);
 
-    
-private:
-	/*	void wheelControl(float right_velocity, float left_velocity)
-	*
-	*	Applies PWM signal to wheel motors. Must convert velocities into
-	*   PWM appropriate signal (integer from 0-255)
-	*	
-	*	Parameters:
-	*	float left_w:		  An angular velocity, specified in radians
-	*						  per second, to be applied to the left wheel.
-	*						  This function will assume velocities requested
-	*						  are within the operating range of the motor as 
-	*						  specified in the datasheet. This function must 
-	*						  convert the angular velocity to some integer 
-	*						  between 0 & 255 using a linear model.
-	*
-	*	float left_w:		  An angular velocity, specified in radians per
-	*						  second, to be applied to the right wheel. Similar
-	*						  conditions to the left_w parameter.
-	*/
-	void wheelControl(State * state);
+  /*  void wheelControl(float right_velocity, float left_velocity)
+  *
+  * Applies PWM signal to wheel motors. Must convert velocities into
+  *   PWM appropriate signal (integer from 0-255)
+  * 
+  * Parameters:
+  * float left_w:     An angular velocity, specified in radians
+  *             per second, to be applied to the left wheel.
+  *             This function will assume velocities requested
+  *             are within the operating range of the motor as 
+  *             specified in the datasheet. This function must 
+  *             convert the angular velocity to some integer 
+  *             between 0 & 255 using a linear model.
+  *
+  * float left_w:     An angular velocity, specified in radians per
+  *             second, to be applied to the right wheel. Similar
+  *             conditions to the left_w parameter.
+  */
+  void wheelControl(State * state);
 
+private:
 	/*	void calculateOdometry(State * state, float left_w, float right_w)
 	*
 	*	Calculates distance travelled in an individual time step and updates the 

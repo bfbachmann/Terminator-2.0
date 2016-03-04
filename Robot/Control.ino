@@ -103,10 +103,10 @@ void Control::go(State * state, Vector * destination, bool stopAtDestination) {
 *  to pin numbers.
 */
 void Control::wheelControl(State * state) {
-	digitalWrite(M1, HIGH); 
-	digitalWrite(M2, HIGH);
-	analogWrite(E1, state->r_PWM); 
-	analogWrite(E2, state->l_PWM);
+        digitalWrite(M1, HIGH); 
+        digitalWrite(M2, HIGH);
+        analogWrite(E1, state->r_PWM); 
+        analogWrite(E2, state->l_PWM);
 }
 
 
@@ -127,7 +127,7 @@ void Control::orientRangeFinder(int orientation) {
 */
 void Control::followLine(State * state) {
 	// const int thresh = 100;
-	float factor = 2;
+	float factor = 2.2;
 	//
 	// if (reflectivities[0] > thresh) {
 	// 	// turn left

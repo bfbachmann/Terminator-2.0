@@ -33,7 +33,7 @@ void AI::decide(State *state) {
 
 //if we are in line we we should just call control to follow line
   if (_currentMode == FollowLine) {
-		const int thresh = 100;
+		const int thresh = 300;    
 
 		if (_externalData->reflectivity(0) > thresh) {
 			// turn left
@@ -45,21 +45,29 @@ void AI::decide(State *state) {
 			state->r_PWM = 55;
 		} else if (_externalData->reflectivity(0) < thresh && 
 								_externalData->reflectivity(1) < thresh && 
-								_externalData->reflectivity(2) < thresh && 
+								_externalData->reflectivity(2) < 800 && 
 								_externalData->reflectivity(3) < thresh) {
 			// or use state to remember in which direction the lost line is
 			if (state->r_PWM > state->l_PWM) {
-				state->l_PWM = 30;
+				state->l_PWM = 30; state->r_PWM = 100;
 			} else { 
-				state->r_PWM = 30;
+				state->r_PWM = 30; state->l_PWM = 100;
 			}
-		} else {
-			// or else drive straight
-			state->r_PWM = 100;
-			state->l_PWM = 100;
+		} else if (_externalData->reflectivity(1) > thresh && _externalData->reflectivity(2) > 800) {
+      // or drive stright
+      state->r_PWM = 100;
+      state->l_PWM = 100;
+		} else if (_externalData->reflectivity(2) > 800) {
+      // or slight right
+      state->l_PWM = 100;
+      state->r_PWM = 85;
+		} else if (_externalData->reflectivity(1) > thresh) {
+      // or slight left
+      state->l_PWM = 85;
+      state->r_PWM = 100;
 		}
-		
-     _control->followLine(state);
+   		
+   		_control->followLine(state);
   }
 
 //if we are in free drive mode we need to look for nearby obstancles

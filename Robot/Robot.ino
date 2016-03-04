@@ -83,7 +83,7 @@ void loop() {
 	if (mode == FreeDrive) {
 		Serial.println("Free drive");
 	} else if (mode == FollowLine) {
-		Serial.println("Follow line");
+		//Serial.println("Follow line");
 	} else {
 		Serial.println("Invaid mode");
 	}
@@ -110,5 +110,5 @@ void loop() {
 	
 	// delay(500);
 		
-//	ai.decide(&state);
+  ai.decide(&state);
 }
