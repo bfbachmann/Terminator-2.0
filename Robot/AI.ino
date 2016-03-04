@@ -5,6 +5,7 @@
 
 #define FREE_DRIVE_SLOW_DISTANCE 75
 #define FREE_DRIVE_HALT_DISTANCE 15
+#define THRESH 300 
 
 /*
  * Constructor for the AI class
@@ -35,42 +36,30 @@ void AI::decide(State *state) {
 	updateMode();
 
 //if we are in line we we should just call control to follow line
-  if (_currentMode == FollowLine) {
-		const int thresh = 300;    
+  if (_currentMode == FollowLine) {  
+    float a = _externalData->reflectivity(0);
+    float b = _externalData->reflectivity(1); 
+    float c = _externalData->reflectivity(2); 
+    float d = _externalData->reflectivity(3); 
 
-		if (_externalData->reflectivity(0) > thresh) {
-			// turn left
-			state->l_PWM = 55;
-			state->r_PWM = 100;
-		} else if (_externalData->reflectivity(3) > thresh) {
-			// or turn right
-			state->l_PWM = 100;
-			state->r_PWM = 55;
-		} else if (_externalData->reflectivity(0) < thresh && 
-								_externalData->reflectivity(1) < thresh && 
-								_externalData->reflectivity(2) < 800 && 
-								_externalData->reflectivity(3) < thresh) {
+    // turn left
+		if ( a > THRESH) { state->l_PWM = 55;	state->r_PWM = 100;
+    // or turn right
+		} else if ( d > THRESH) { state->l_PWM = 100; state->r_PWM = 55;
+    // or use state to determine direction of the line
+		} else if ( a < THRESH && b < THRESH &&	c < 800 && d < THRESH) {
 			// or use state to remember in which direction the lost line is
-			if (state->r_PWM > state->l_PWM) {
-				state->l_PWM = 30; state->r_PWM = 100;
-			} else { 
-				state->r_PWM = 30; state->l_PWM = 100;
-			}
-		} else if (_externalData->reflectivity(1) > thresh && _externalData->reflectivity(2) > 800) {
-      // or drive stright
-      state->r_PWM = 100;
-      state->l_PWM = 100;
-		} else if (_externalData->reflectivity(2) > 800) {
-      // or slight right
-      state->l_PWM = 100;
-      state->r_PWM = 85;
-		} else if (_externalData->reflectivity(1) > thresh) {
-      // or slight left
-      state->l_PWM = 85;
-      state->r_PWM = 100;
-		}
-   		
-   		_control->followLine(state);
+			if (state->r_PWM > state->l_PWM) { state->l_PWM = 30; state->r_PWM = 100;
+			} else { state->r_PWM = 30; state->l_PWM = 100;	}
+    // or drive straight
+		} else if ( b > THRESH && c > 800) { state->r_PWM = 100; state->l_PWM = 100;
+    // or slight right
+		} else if ( c > 800) { state->l_PWM = 100; state->r_PWM = 85;
+    // or slight left
+		} else if ( b > THRESH) { state->l_PWM = 85; state->r_PWM = 100; }
+
+    // send state with updated wheel speeds for next time step to control
+   	_control->followLine(state);
   }
 
 //if we are in free drive mode we need to look for nearby obstancles
