@@ -19,7 +19,7 @@ By Chad Lagore
 #define R 6.5
 #define L 16
 
-#define SERVO_DELAY_PER_DEGREE 1
+#define SERVO_DELAY_PER_DEGREE 3
 
 #define _USE_MATH_DEFINES
 
