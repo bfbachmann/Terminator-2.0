@@ -4,7 +4,7 @@
 #define RANDOM_SWEEP 1
 
 #define FREE_DRIVE_SLOW_DISTANCE 55
-#define FREE_DRIVE_HALT_DISTANCE 15
+#define FREE_DRIVE_HALT_DISTANCE 20
 #define THRESH 300 
 
 /*
@@ -105,23 +105,23 @@ void AI::decide(State *state) {
         }
         else if (straightAheadDistance < FREE_DRIVE_SLOW_DISTANCE) {
     			control.sendByteToSlave('d');
-                        control.slowDown(state);
+          control.slowDown(state);
     			return;
         }
         
         else {
                 //check if we should do a random sweep
-              if (timeSinceLastRandomSweep > RANDOM_SWEEP_DELAY_CYCLES) {
-                        timeSinceLastRandomSweep = 0;
-                        control.sendByteToSlave('c');
-                        Direction avoidanceDirection = sweep();
-                        if(avoidanceDirection == Left) { shortTermGoal = {-1,1.5}; }
-                        else if(avoidanceDirection == Right) { shortTermGoal = {1,1.5}; }
-                        else { shortTermGoal = {0,1}; }
-                } else { // we are just driving forward
+              // if (timeSinceLastRandomSweep > RANDOM_SWEEP_DELAY_CYCLES) {
+              //           timeSinceLastRandomSweep = 0;
+              //           control.sendByteToSlave('c');
+              //           Direction avoidanceDirection = sweep();
+              //           if(avoidanceDirection == Left) { shortTermGoal = {-1,1.5}; }
+              //           else if(avoidanceDirection == Right) { shortTermGoal = {1,1.5}; }
+              //           else { shortTermGoal = {0,1}; }
+              //   } else { // we are just driving forward
             	        control.sendByteToSlave('b');
                         shortTermGoal = {0.0,1.0}; 
-                }
+                // }
         }	
         state->v = MAX_SPEED;
         control.go(state, &shortTermGoal, false);

@@ -96,7 +96,7 @@ void Control::adjustHeading(State * state, Vector * destination, bool hard) {
 	float factor = 10.0;
         state->heading = M_PI/2;
         
-	arc = 4.6 * MAX_RPM / 60000 * 2 * M_PI * R * 2;
+	arc = 3.0 * MAX_RPM / 60000 * 2 * M_PI * R * 2;
         arc = hard ? arc : arc / 2;
         
 	/* Determine desired heading, velocity and angular velocity */
@@ -144,7 +144,7 @@ void Control::orientRangeFinder(int orientation) {
 *  Completes one time step in the control flow of a line-following behaviour.
 */
 void Control::followLine(State * state) {
-	const float factor = 2;
+	const float factor = 2.0;
 	digitalWrite(M1, HIGH); digitalWrite(M2, HIGH);
 	analogWrite(E1, factor*state->l_PWM); analogWrite(E2, factor*state->r_PWM);
 }
@@ -155,10 +155,10 @@ void Control::stop() {
 }
 
 void Control::slowDown(State *state) {
-	state->v = state->v - 4;
+	state->v = state->v - 2;
 	
-	if (state->v < 20) {
-		state->v = 20;
+	if (state->v < 25) {
+		state->v = 25;
 	}
 	
 	// Serial.print("New velocity: ");
