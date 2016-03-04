@@ -19,7 +19,7 @@ By Chad Lagore
 #define R 6.5
 #define L 16
 
-#define SERVO_DELAY_PER_DEGREE 1
+#define SERVO_DELAY_PER_DEGREE 3
 
 #define _USE_MATH_DEFINES
 
@@ -160,12 +160,10 @@ void Control::slowDown(State *state) {
 	if (state->v < 20) {
 		state->v = 20;
 	}
-
-#ifdef DEBUG
-	Serial.print("New velocity: ");
-	Serial.println(state->v);
-#endif
-
+	
+	// Serial.print("New velocity: ");
+	// Serial.println(state->v);
+	
 	Vector destination;
 	destination.x = 0;
 	destination.y = 1;

@@ -1,6 +1,6 @@
 #include "Robot.h"
 
-#define RANDOM_SWEEP_DELAY_CYCLES 15
+#define RANDOM_SWEEP_DELAY_CYCLES 200
 #define RANDOM_SWEEP 1
 
 #define FREE_DRIVE_SLOW_DISTANCE 55
@@ -14,6 +14,7 @@ AI::AI(ExternalData *externalData, Control *control) {
 	_externalData = externalData;
 	_control = control;
  timeSinceLastRandomSweep = 0;
+ _currentMode = Uninitialized;
 }
 
 
