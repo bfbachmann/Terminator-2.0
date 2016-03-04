@@ -170,7 +170,13 @@ void Control::slowDown(State *state) {
 }
 
 void Control::sendByteToSlave(char byte) {
-	Wire.beginTransmission(WIRE_DEVICE);
+	// write to the first device
+	Wire.beginTransmission(WIRE_DEVICE_1);
+	Wire.write(byte);
+	Wire.endTransmission();
+	
+	// write to the second device
+	Wire.beginTransmission(WIRE_DEVICE_2);
 	Wire.write(byte);
 	Wire.endTransmission();
 }

@@ -16,6 +16,10 @@
 #define MAX_SPEED 61
 #define DEBUG 1
 
+// address of the slave arduino we care about on the wire bus
+#define WIRE_DEVICE_1 8
+#define WIRE_DEVICE_2 9
+
 class AI;
 class ExternalData;
 class Control;

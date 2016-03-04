@@ -36,27 +36,39 @@ void AI::decide(State *state) {
 	updateMode();
 
 //if we are in line we we should just call control to follow line
-  if (_currentMode == FollowLine) {  
+  if (_currentMode == FollowLine) {
+		bool lostLine = false;
+		
     float a = _externalData->reflectivity(0);
     float b = _externalData->reflectivity(1); 
     float c = _externalData->reflectivity(2); 
     float d = _externalData->reflectivity(3); 
 
-    // turn left
-		if ( a > THRESH) { state->l_PWM = 55;	state->r_PWM = 100;
-    // or turn right
-		} else if ( d > THRESH) { state->l_PWM = 100; state->r_PWM = 55;
-    // or use state to determine direction of the line
+		if ( a > THRESH) { // turn left
+			state->l_PWM = 55;	state->r_PWM = 100;
+		} else if ( d > THRESH) { // or turn right
+			state->l_PWM = 100; state->r_PWM = 55;
 		} else if ( a < THRESH && b < THRESH &&	c < 800 && d < THRESH) {
 			// or use state to remember in which direction the lost line is
-			if (state->r_PWM > state->l_PWM) { state->l_PWM = 30; state->r_PWM = 100;
-			} else { state->r_PWM = 30; state->l_PWM = 100;	}
-    // or drive straight
-		} else if ( b > THRESH && c > 800) { state->r_PWM = 100; state->l_PWM = 100;
-    // or slight right
-		} else if ( c > 800) { state->l_PWM = 100; state->r_PWM = 85;
-    // or slight left
-		} else if ( b > THRESH) { state->l_PWM = 85; state->r_PWM = 100; }
+			lostLine = true;
+			if (state->r_PWM > state->l_PWM) {
+				state->l_PWM = 30; state->r_PWM = 100;
+			} else {
+				state->r_PWM = 30; state->l_PWM = 100;
+			}
+		} else if ( b > THRESH && c > 800) { // or drive straight
+			state->r_PWM = 100; state->l_PWM = 100;
+		} else if ( c > 800) { // or slight right
+			state->l_PWM = 100; state->r_PWM = 85;
+		} else if ( b > THRESH) { // or slight left
+			state->l_PWM = 85; state->r_PWM = 100;
+		}
+		
+		if (lostLine) {
+			control.sendByteToSlave('j');
+		} else {
+			control.sendByteToSlave('n');
+		}
 
     // send state with updated wheel speeds for next time step to control
    	_control->followLine(state);
@@ -65,7 +77,6 @@ void AI::decide(State *state) {
 //if we are in free drive mode we need to look for nearby obstancles
 //and slow down or stop depending on how close they are
   else if (_currentMode == FreeDrive) {
-    
 		_control->orientRangeFinder(90);
     float straightAheadDistance = _externalData->distance(0, false, (0.5 * state->v));
 #ifdef DEBUG
@@ -80,17 +91,20 @@ void AI::decide(State *state) {
 #endif
     
     if (straightAheadDistance < FREE_DRIVE_HALT_DISTANCE) {
+			control.sendByteToSlave('h');
       _control->stop();
       shortTermGoal.y = 0.0;
 			if (sweep() == Right) {
 #ifdef DEBUG
 				Serial.println("Turning right to avoid object");
 #endif
+				control.sendByteToSlave('g');
 				shortTermGoal.x = 1.0;
 			} else {
 #ifdef DEBUG
 				Serial.println("Turning left to avoid object");
 #endif
+				control.sendByteToSlave('f');
 				shortTermGoal.x = -1.0;
 			}
     }
@@ -98,6 +112,7 @@ void AI::decide(State *state) {
 #ifdef DEBUG
 			Serial.println("Slowing");
 #endif
+			control.sendByteToSlave('d');
       control.slowDown(state);
 			return;
     }
@@ -113,6 +128,7 @@ void AI::decide(State *state) {
 #ifdef DEBUG
         Serial.println("Doing random sweep");
 #endif 
+				control.sendByteToSlave('c');
         Vector *avoidanceVector = sweep(36);
 
         shortTermGoal.x = avoidanceVector->x;
@@ -125,10 +141,11 @@ void AI::decide(State *state) {
        Serial.print("Avoidance vector y: ");
        Serial.println(avoidanceVector->y);
 #endif
-
-      
+      } else { // we are just driving forward
+      	control.sendByteToSlave('b');
       }
 #else
+			control.sendByteToSlave('b');
       shortTermGoal.x = 0;
 		  shortTermGoal.y = 10.0;
 #endif
@@ -185,6 +202,14 @@ Vector *AI::sweep(uint8_t offset) {
 
 void AI::updateMode() {
   Mode mode = _externalData->mode();
+	
+	if (mode != _currentMode) { // if the mode has changed, let the slaves know
+		if (mode == FreeDrive) {
+			control.sendByteToSlave('a');
+		} else if (mode == FollowLine) {
+			control.sendByteToSlave('i');
+		}
+	}
 	
 	_currentMode = mode;
 }
