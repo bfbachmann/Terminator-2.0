@@ -335,6 +335,9 @@ private:
 #pragma mark Servo instance variables
     Servo rangeFinderServo;
 		int _currentRangeFinderOrientation;
+		
+#pragma mark Slave command instance variables
+		char _last_command;
 };
 
 /*

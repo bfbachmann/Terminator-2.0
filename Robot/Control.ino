@@ -169,15 +169,23 @@ void Control::slowDown(State *state) {
 	//decrement current wheel speed by some about and write this new value back to the wheels
 }
 
-void Control::sendByteToSlave(char byte) {
+void Control::sendByteToSlave(char command) {
+	if (command == _last_command) {
+		if (command == 'b' || command == 'd') {
+			return;
+		}
+	}
+	
+	_last_command = command;
+	
 	// write to the first device
 	Wire.beginTransmission(WIRE_DEVICE_1);
-	Wire.write(byte);
+	Wire.write(command);
 	Wire.endTransmission();
 	
 	// write to the second device
 	Wire.beginTransmission(WIRE_DEVICE_2);
-	Wire.write(byte);
+	Wire.write(command);
 	Wire.endTransmission();
 }
 
