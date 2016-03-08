@@ -1,0 +1,138 @@
+\documentclass[paper=a4, fontsize=11pt]{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage{fourier}
+\usepackage{hyperref}
+\usepackage[english]{babel}															% English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype}	
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage[pdftex]{graphicx}	
+\usepackage{url}
+\usepackage{tikz}
+
+
+%%% Custom sectioning
+\usepackage{sectsty}
+\allsectionsfont{\centering \normalfont\scshape}
+
+
+%%% Custom headers/footers (fancyhdr package)
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhead{}											% No page header
+\fancyfoot[L]{}											% Empty 
+\fancyfoot[C]{}											% Empty
+\fancyfoot[R]{\thepage}									% Pagenumbering
+\renewcommand{\headrulewidth}{0pt}			% Remove header underlines
+\renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
+\setlength{\headheight}{13.6pt}
+
+
+%%% Equation and float numbering
+\numberwithin{equation}{section}		% Equationnumbering: section.eq#
+\numberwithin{figure}{section}			% Figurenumbering: section.fig#
+\numberwithin{table}{section}				% Tablenumbering: section.tab#
+
+
+%%% Maketitle metadata
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
+
+\title{
+		%\vspace{-1in} 	
+		\usefont{OT1}{bch}{b}{n}
+		\horrule{0.5pt} \\[0.4cm]
+		\huge Group Project Report \\
+		\horrule{2pt} \\[0.5cm]
+}
+\author{
+		\textit{Lab Section: L2D   ---  Team \#6C}
+		\normalfont 						\normalsize
+        \\ Rory Fraser -- 20901054
+        	\\Chad Lagore -- 27493148
+            \\Devin Meckling -- 35723105
+            \\ Other dudes \\ \normalsize
+        \today
+}
+\date{}
+
+
+%%% Begin document
+\begin{document}
+%%\input{lab2reportdraft-concordance}
+\maketitle
+
+\section{Control} 
+\subsection{Dynamical Models}
+From a control perspective, we wanted to build a system that could handle more general situations than the principle functionality outlined in the lab. Additionally, we wanted something scalable, that could be used for a variety of purposes, and could adequately abstract away the intricacies of the control processes taking place under the hood. The difficulties we encountered in achieving this were primarily introduced by the lack of spacial sensors on the robot, and imperfectly aligning our models with real motor speeds. \\\\
+In the control class, the primary function is \texttt{go}. This function takes as arguments the current \texttt{state} of the robot (including its velocity, $x, y$ coordinates, wheel PWM values and  other features), a \texttt{destination} vector and a boolean value \texttt{stopAtDestination}. The purpose of the \texttt{go} function is to receive a destination vector, to correct the robots heading, and to travel in that direction. It will stop once it has traveled the magnitude of the \texttt{destination} vector only if \texttt{stopAtDestination = true}. Otherwise the robot will simply adjust it's heading and move endlessly in the new direction until a new command is issued. Both the use of vectors and the \texttt{stopAtDestination} argument provide a certain degree of adaptability to \texttt{go}. It can be called for slight heading adjustments, or it can be called to execute well-defined trajectories and stop at the destination. \\\\
+\texttt{go} calls a function \texttt{adjustHeading} to make its heading adjustments. This function turns on its axis or turns gradually depending on the value of the boolean \texttt{hard} argument. The opportunity for a hard turn may arise when the robot is near a wall, whereas a soft heading adjustment may be necessary for general driving purposes. This is one area where the scalability of \texttt{go} is limited only by additional sensor information.
+\\\\
+Position coordinates: $(x,y)$
+\\\\
+Goal coordinate: $(x_g,y_g)$
+\\\\
+Heading: $\phi = \frac{\pi}{2}$ (angle from the $x$-axis)
+\\\\
+
+\begin{center}
+\begin{tikzpicture}
+
+    % horizontal axis
+    \draw[dotted,->] (-1,0) -- (6,0) node[anchor=north]                          {$x$};
+    
+    % ranges
+    \draw[dotted] (0,0) circle (1.5cm);
+    \draw
+            (2.9,3.5) node{{$(x_g,y_g)$}}
+            (-0.6,.25) node {$(x,y)$}
+          	(0,3.2) node{{\scriptsize Current Heading}};
+    		
+    \fill (2.05,3.5) circle[radius=2pt];
+    
+    % vertical axis
+    \draw[dotted,->] (0,-1) -- (0,4) node[anchor=east] {$y$};
+    
+    % Vectors
+    \draw[->] (0,0) -- (0,2.8);
+    \draw[->] (0,0) -- (2,3.4);
+    \draw (0.85,2.1) node {$\vec{u_g}$}; %label
+    
+    % text
+    \draw (0.9,0.6) node {$\phi_d$}; %label
+    \draw (0.3,1.11) node {$e$}; %label
+    \draw [dashed] (0.8,0) parabola[bend at end] (0.4,.7);
+    \draw [dashed] (0,0.8) parabola (0.4,.7);
+
+\end{tikzpicture}
+\end{center}
+\texttt{adjustHeading} makes use of a basic error stabilization technique. A convention is used that the current heading and coordinates of the robot are $\frac{\pi}{2}$ and $(0,0)$ respectively when \texttt{adjustHeading} or \texttt{go} is called. The desired heading vector, \texttt{*destination} ($\vec{u_g}$ in the plot), is converted to an angle in radians using \texttt{atan2(destination->y, destination->x)}. The \texttt{atan2} function provides the angle in radians from the $x$-axis to the point $(x,y)$. The angle is positive for $y>0$ and negative for $y<0$. This helps retain the information about which quadrant the destination vector is on, something not characteristic of the \texttt{atan} function. Finally, an error $e$ is calculated:
+
+$$e = \frac{\pi}{2}-\phi_d$$
+
+where $\phi_d =$ \texttt{atan2(destination->y, destination->x)}. The wheels are engaged, one wheel backwards and one forwards if \texttt{hard = true}, and simply slowing one wheel if \texttt{hard = false} (providing a more gradual correction). Error correction is done by calculating the arc length of the wheel base, using the geometry of the robot. For each time step, a small adjustment is made to the current heading and the error is recalculated. Finally if the error is sufficiently small, the correction is complete, and control is passed back to \texttt{go}, and finally to the \texttt{AI} class. If \texttt{stopAtDestination = true}, \texttt{go} will not pass control back to \texttt{AI} until the magnitude of the \texttt{destination} vector has been travelled. This is calculated using wheel RPM (factored by the requested velocity between 0 and 61 $\frac{\text{cm}}{\text{s}}$), and the geometry of the wheels.
+\\\\
+\subsection{Unused Alternatives}
+A PID controller is one feature that we were not able to get working properly on the robot. The goal was to stabilize the error in the heading by using an angular velocity given by the following PI controller:
+$$e(\phi) = \phi(t) - \phi_d$$
+$$\dot\phi = \omega = k_Pe(\phi) + k_I\int_0^te(\tau)d\tau$$
+where $\phi(t)$ is the current heading and $e(\phi)$ is the error in the heading. The error here is a more general version of the one described in the Dynamical Models section of the report. For every time step an angular velocity is recalculated proportional to the current error in heading, $e(\phi)$, using constants $k_P$ and $k_I$ to tune the control response. The result is a very smooth heading correction. The same calculation is implemented in code for each 2 millisecond time-step \texttt{dt},
+\begin{verbatim}
+error = state->heading - desired_heading
+omega = k_P * error + k_I * error * dt
+\end{verbatim}
+This heading correction gave impressive error correction for destination vectors in the $y>0$ section of the Cartesian plane. Unfortunately, when a vector was requested in the $y<0$ section of the Cartesian plane, significant heading error built up on our odometry calculations. Using the geometry of the wheel base and RPM speeds to calculate heading change gave inadequate measurements of the actual heading correction taking place in the real world. It was because of this that we had to remove the PID controller and use the less sophisticated models as described in the Dynamical Models section.
+\subsection{Testing Control}
+Testing control was definitely a process of trial and error. There were many complications in converting our model to a real world result. For example, wheel RPM was not perfectly correlated to PWM requests. Gradual changes in the voltage of our battery packs also affected the heading adjustments taking place in the real world versus those taking place in the model running on Arduino. Additional load on the robot slowed the motors, adjusting the wheel speeds. These complications were largely resolved by tuning the models with factors.
+\\\\
+The arc length traveled in one time step of a heading correction was multiplied by a factor. This factor was tuned based on additional weight on the robot, added power load, and decreasing battery voltage. The same was done for distance calculations. A factor augmented the distance that Arduino 'believed' it had traveled, to correspond with what was actually transpiring in the real world. Using factors and continually adjusting, resulted in more and more reliable control of the robot.
+\\\\
+\section{References}
+\begin{enumerate}
+  \item Atan2 function. URL:  \url{https://en.wikipedia.org/wiki/Atan2}
+   \item PID Controller. URL:  \url{https://en.wikipedia.org/wiki/PID_controller}
+  \item DFRobot Motor Shield Wiki. URL:  \url{http://www.dfrobot.com/wiki/index.php?title=Arduino_Motor_Shield_%28L298N%29_%28SKU:DRI0009%29}
+  \item DFRobot Turtle Assembly Manual. URL:  \url{http://www.dfrobot.com/image/data/ROB0005/3PA%20InstructionManual%20V1.1.pdf}
+\end{enumerate}
+\end{document}
+
+
+
