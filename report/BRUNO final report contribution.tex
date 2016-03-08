@@ -1,0 +1,58 @@
+
+
+
+
+
+%Hey Rory, I kept the numbering in my document consistent with the list you sent us so you can edit things more easily if need be.
+
+
+\documentclass[letterpaper,12pt]{article}
+\usepackage{amsmath, amsfonts, amssymb, enumerate}
+\usepackage[paper=letterpaper,left=25mm,right=25mm,top=3cm,bottom=25mm]{geometry}
+
+\begin{document} 
+
+\begin{enumerate}
+
+\item A detailed summary of my contributions to the project. 
+
+Bruno's technical contributions to the project were largely in the area of principle functionality 1, the "free drive mode". In regards to software Bruno was responsible for writing the private functions in the ExternalData class that were responsible for reading temperatures and distances from their corresponding sensors. Note that these functions were largely adapted from previous labs, so Bruno did not have to reimplement them from scratch, however some compatibility code was added to these functions to integrate them properly into the rest of the system that would be the robot. These modifications include placing limitations on the distances returned by functions responsible for reading from the ultrasonic sensor as the values returned by these functions tended to be unreliable. It is also worth mentioning that Jordan would later modify some of these functions again to further increase the reliability of the values they returned and to have some of them communicate with external Arduinos in the case of the getTemperature() function. The other input-handling function Bruno wrote in the ExternalData class was the simple function to update the mode the robot is in by reading from a switch. In the Control class Bruno implemented functions to orient the servo motor (orientRangeFinder()) given the angle the user wishes the servo to rest at. He consulted with Jordan on the implementation of the slowDown() function for gradually decreasing the robot's speed and was involved in testing and tweaking it, however Jordan was fully responsible for actually writing the code associated with this function. On a higher level Bruno was responsible for implementing the part of the AI::decide() function involving the "free drive mode" for calling ExternalData functions to analyze the robot's surroundings and using Control functions to regulate its behaviour in response. Bruno and Chad would later collaboratively make changes to this function after testing.  \newline \newline
+On a hardware level Bruno built the sheet metal mounts for attaching the servo motor to the frame of the robot and for attaching the ultrasonic sensor to the head of the servo motor. He also put the necessary circuitry in place on the master Arduino for handling inputs from the ultrasonic sensor and pushbutton for controlling the mode the robot is in, and output to the servo motor.  \newline \newline 
+Finally, and from a more general standpoint, Bruno took part in the testing and continuous improvement of the robot's first principle functionality and played a part in debugging and optimizing code in other areas of the software that was run of the master Arduino. 
+
+\item Block diagrams of what I worked on.
+
+Uploaded at a Fritzing schematic sensor_and_pushbutton.fzz.
+ 
+\item Coding and wiring procedure for the specific part I am detailing.
+ 
+Bruno began at the lowest level, incorporating code for reading form the ultrasonic and temperature sensors and adding some compatibility code to ensure it would work with the rest of our system at the time. He then set up some basic circuitry and tested this code with the sensors to ensure the low-level functions for reading from these sensors were in fact returning accurate values. These functions were then placed in the project sketch file in he ExternalData class as private functions as they only needed to be accessible to other functions of the same class for safety. He would later modify these functions in collaboration with Jordan to increase their reliability when dealing with often unreliable sensor outputs. Once this was done he implemented the Control function responsible for taking an angle at which to orient the servo from the user and writing to the servo. He tested this function, fixed problems and then implemented the sweep() function in the AI class that would make consecutive calls to the relevant Control and ExternalData functions to sweep the surrounding area and gather data about the robot's distance from objects within a 90 degrees of its heading to the left and the right. The sweep() function was initially intended to simply return a 90 degree turn direction to take (left or right), but was later modified to include an option to continue straight in the case where there were obstacles at almost equal distance from the robot to its left and its right. Indeed he developed yet another version of this function that would return a vector representing the direction the robot was to head in in order to avoid obstacles, but after much testing this function proved too unreliable to be a feasible feature of the robot. Finally he began working on the AI that would get the current operating mode selected by the user and acquire the relevant data using the public ExternalData functions, using them to make decisions about where the robot should be headed. These decisions in combination with the current state of the robot would then be sent to the relevant Control functions to write output to the robot actuators. This area of development in particular was an iterative process as the decisions made by Bruno's AI code had to be reliable in a range of scenarios and were based on very little data. For this reason a large portion of the development of the AI class was testing and tweaking code to ensure the robot responded correctly to all stimuli. Chad was a large part of this process as well.  
+
+\item Unused alternative(s). 
+
+In implementing the sweep() function to gather data about the distances of objects within a 180 degree field of view of the robot Bruno initially intended for it to return and enum value of either "Left","Right", or "Straight", but later overloaded it to return a vector representing the direction or movement relative to the robot's current heading the robot was to take in order to avoid obstacles. In testing this overloaded version of the function Bruno realized that it would have to take a large number of readings to return a vector accurate enough to be a safe new heading for the robot every time it was called. Moreover, the sampling and calculation time required to get and process all this data proved to outweigh the possible benefits of including this functionality in the robot, especially considering that while this function was being executed the robot would not be able to take any other actions.
+
+\item Testing procedure. 
+
+Testing was very much a part of the development process for the code Bruno worked on. Testing began at a low level ensuring the functions at the deepest end of the call chain were completely reliable as they would be the foundation of all higher level functions. After writing each function Bruno tested it in combination with the hardware it would interface with until he was completely satisfied that it met all specifications. The functions in ExternalData to read from the ultrasonic and temperature sensors were tested first because they needed to be proven reliable before they could be called by higher level functions like AI::decide(). Next the control function for writing to the servo motor was tested along with the servo motor. Up until that point testing had gone rather smoothly and was not indicative of any major logical errors in code or hardware setup. However, when calling the aforementioned functions in the testing of the AI class problems with scope and pointers began to crop up. Because data from one class was being accessed from another we had to be particularly carefully about how this data was being accessed and used. Pointers were a continual problem as they can be a relatively tricky concept in programming, and the errors they caused in our case were unpronounced, unpredictable, and thus hard to reproduce. However, through the use of print statements and discussion with team members Bruno managed to debug the problematic functions in the AI class. Once all functions were working correctly Bruno and Chad tested and tweaked the Control functions and AI functions that called them, each time observing the behaviour the robot exhibited when the updated code was uploaded to it in order to fine-tune the robot's behaviour. This process alone took several hours as often what seemed like minor changes would have large and unexpected effects on the robots behaviour. 
+   
+\item Problems encountered/how you resolved them.
+
+Aside from pointer and variable/function scope problems the biggest problem Bruno encountered was in the area of hardware while testing. Often times while testing the functionalities of the AI class the robot would exhibit inexplicable behaviour or would simply lose power to its wheels for no apparent reason. After careful consideration of possible causes for these problems on the part of both Bruno and Chad it was discovered that they were largely due to circuit shorts in the cables connecting the Arduino motor shield to the motors. These wires were separated further ensuring this complication would not arise again. The other major problem Bruno encountered was that the Control functions he was calling from the AI class were not behaving in the way he was expecting. Seeing as Chad was responsible for writing these functions Bruno consulted Chad and explained the problem to him. Thereafter Bruno and Chad assessed the way AI was calling Control functions, eventually finding that Bruno was passing Chad's functions data they were not expecting to handle, which in turn was causing them to exhibit strange behaviours like infinite loops. The AI and corresponding Control functions were then reworked slightly by Bruno and Chad to iron out compatibility problems.
+ 
+\item A short conclusion on what you learned from working on that particular segment.
+
+In working on his part of the project Bruno learned that it is always best to test early and test often. Developing a large and interconnected software system (especially one based on underlying hardware and software written by other people) without carefully considering the specifications of all modules involved is extremely risky and often leads to complications like compatibility in the long term.  He also learned that even when testing small modules of a program they should be tested in the environment they would will be running in at demo time so they are exposed to the same kinds of stresses in the tests as they would be in the actual runtime environment.
+
+\item References:
+
+\begin{enumerate}
+
+\item Cytron Technologies. "Ultrasonic Ranging Module." Cytron. Cytron Technologies, n.d. Web. 10 Feb. 2016. <https://www.google.ca/search?q=cytron%2Btechnologies%2Bhc-sr%2B04&oq=cytron%2Btechnologies%2Bhc-sr%2B04&aqs=chrome..69i57.4894j0j7&sourceid=chrome&es_sm=91&ie=UTF-8>.
+
+\item Texus Instruments. "LM35 Precision Centigrade Temperature Sensors." LM35 (2013): n. pag. Texus Instruments. Web. 7 Mar. 2016. <https://connect.ubc.ca/bbcswebdav/pid-3136872-dt-content-rid-14227042_1/courses/SIS.UBC.ELEC.291.20C.2015W2.59753/ELEC291_15W2/Project1/291_project1_Lab_images/LM35_datasheet.pdf>.
+
+
+\end{enumerate}
+
+\end{document}
