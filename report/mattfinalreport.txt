@@ -1,0 +1,7 @@
+Matt wrote data gathering functions and a test bench for hall effect sensors and magnets. 
+
+A standard Arduino library program was used to create a magnetic field detection program. To program the sensors to be slide-by switches, a virtual state machine was used to determine if the magnet was detected or not. This made the data gathering function edge-triggered. 
+
+When the magnet would be attached to the wheel, the program would update speed based on time difference and distance traveled. To configure this initially, a test bench was created for Arduino that could output these parameters on serial monitor.
+
+Problems encountered were mainly spacial constraints, as we ran out of analog input ports on our master Arduino. The hall effect sensors were ultimately not implemented for our final design.
