@@ -1,0 +1,79 @@
+\documentclass[paper=a4, fontsize=11pt]{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage{fourier}
+\usepackage{hyperref}
+\usepackage[english]{babel}															% English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype}	
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage[pdftex]{graphicx}	
+\usepackage{url}
+\usepackage{tikz}
+
+
+%%% Custom sectioning
+\usepackage{sectsty}
+\allsectionsfont{\centering \normalfont\scshape}
+
+
+%%% Custom headers/footers (fancyhdr package)
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhead{}											% No page header
+\fancyfoot[L]{}											% Empty 
+\fancyfoot[C]{}											% Empty
+\fancyfoot[R]{\thepage}									% Pagenumbering
+\renewcommand{\headrulewidth}{0pt}			% Remove header underlines
+\renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
+\setlength{\headheight}{13.6pt}
+
+
+%%% Equation and float numbering
+\numberwithin{equation}{section}		% Equationnumbering: section.eq#
+\numberwithin{figure}{section}			% Figurenumbering: section.fig#
+\numberwithin{table}{section}				% Tablenumbering: section.tab#
+
+
+%%% Maketitle metadata
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
+
+\title{
+		%\vspace{-1in} 	
+		\usefont{OT1}{bch}{b}{n}
+		\horrule{0.5pt} \\[0.4cm]
+		\huge Group Project Report \\
+		\horrule{2pt} \\[0.5cm]
+}
+\author{
+		\textit{Lab Section: L2D   ---  Team \#6C}
+		\normalfont 						\normalsize
+        \\ Rory Fraser -- 20901054
+        	\\Chad Lagore -- 27493148
+            \\Devin Meckling -- 35723105
+            \\ Other dudes \\ \normalsize
+        \today
+}
+\date{}
+
+
+%%% Begin document
+\begin{document}
+%%\input{lab2reportdraft-concordance}
+\maketitle
+
+\section{Assembly} 
+
+Robot assembly was a straightforward task. The manual gave a fairly detailed description of how to assemble the parts. The area of lacking documentation was in powering the Arduino, and connecting the battery packs to the switch. Thankfully some online \textit{instructables} provided some right approach (available in the references). Eventually, more than one Arduino was required, so our primary area of problem solving in the assembly was providing enough power to the components. We will describe this in more detail.
+\subsection{Power}
+Our research found that the optimum voltage to be supplied to an Arduino was between 7 and 12 volts. Five AA 1.5V batteries in the attached battery bank provided between 6.5 and 7.5V, depending on their level of charge. We dedicated the first battery bank to the master Arduino. The battery red lead was soldered to the switch, the ground was ran directly into the master Arduino. To maintain a common ground, this ground was also linked into each of the slave Arduino's ground terminals. This ensured communication between the three controllers.
+\\\\
+The primary power consumption from the master Arduino was the motor control. We noticed significant speed reduction when only one battery pack was used. The additional pack ran power to the additional Arduino's, powering sound and LCD screens, so that both systems had a dedicated 7 volts at any time. As the battery power lowered, both the principle and additional functionality suffered. This is a problem we intend to correct for project two.
+\\\\
+\section{References}
+\begin{enumerate}
+	\item Powering Arduino from Battery. URL: \newline \url{http://www.instructables.com/id/Powering-Arduino-with-a-Battery/}
+\end{enumerate}
+\end{document}
+
+
+
+
